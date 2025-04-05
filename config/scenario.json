@@ -1,0 +1,20 @@
+{
+    "name": "Temperature Sensor Simulation",
+    "episodes": [
+      {
+        "primitive_type": "constant",
+        "config": {"value": 22.5},
+        "duration": 5.0,
+        "is_looped": false
+      },
+      {
+        "primitive_type": "formula",
+        "config": {
+          "expression": "A * math.sin(2 * math.pi * t / period) + B",
+          "variables": {"A": 2.5, "B": 22.5, "period": 10.0}
+        },
+        "duration": 30.0,
+        "is_looped": true
+      }
+    ]
+  }
