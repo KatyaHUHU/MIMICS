@@ -1,0 +1,8 @@
+{
+    "broker": "test.mosquitto.org",
+    "port": 1883,
+    "topic": "mimics/sensor_data",
+    "username": "",
+    "password": "",
+    "qos": 1
+  }
