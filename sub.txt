@@ -1,0 +1,1 @@
+mosquitto_sub -h test.mosquitto.org -t "mimics/sensor_data" -v
