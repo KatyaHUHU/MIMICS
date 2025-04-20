@@ -57,9 +57,14 @@ const SensorManager = () => {
     }, []);
 
     const fetchPrimitives = async () => {
-        const response = await fetch('http://localhost:5000/primitives');
-        const data = await response.json();
-        setPrimitives(data);
+        try {
+            const response = await fetch('http://localhost:5000/primitives');
+            if (!response.ok) throw new Error('Network response was not ok');
+            const data = await response.json();
+            setPrimitives(data);
+        } catch (error) {
+            console.error('Ошибка при загрузке данных:', error);
+        }
     };
 
     const addPrimitive = async (newPrimitive) => {
@@ -71,12 +76,23 @@ const SensorManager = () => {
             body: JSON.stringify(newPrimitive),
         });
 
+        if (response.ok) {
+            await fetchPrimitives(); // Обновляем список примитивов после успешного добавления
+        } else {
+            console.error('Ошибка при добавлении примитива');
+        }
+
         const data = await response.json();
         setPrimitives(data);
+
     };
 
+        //const data = await response.json();
+        //setPrimitives(data);
+    //};
+
     const deletePrimitive = async (index) => {
-        const response = await fetch(`http://localhost:3000/primitives/${index}`, {
+        const response = await fetch(`http://localhost:5000/primitives/${index}`, {
             method: 'DELETE',
         });
 
@@ -111,12 +127,12 @@ const SensorManager = () => {
                         {primitives.map((primitive, index) => (
                             <li key={index}>
                                 {primitive.name}
-                                <button onClick={() => deletePrimitive(index)}>Delete</button>
+                                <button onClick={() => deletePrimitive(index)}>Удалить</button>
                             </li>
                         ))}
                     </ul>
-                    <button onClick={() => addPrimitive({ name: 'New Primitive' })}>Add Primitive</button>
-                    <button onClick={downloadJSON}>Download JSON</button> {/* Кнопка для скачивания */}
+                    <button onClick={() => addPrimitive({ name: 'новый эпизод' })}>Add Primitive</button>
+                    <button onClick={downloadJSON}>Скачать настройки сценария JSON</button> {/* Кнопка для скачивания */}
 
                 </div>
                 <button onClick={backToMainMenu}>Назад к списку датчиков</button>
@@ -168,6 +184,12 @@ const SensorManager = () => {
                         ))}
                     </ul>
                 )}
+            </div>
+
+            <div className="button-container">
+                <button onClick={() => setShowAddForm(!showAddForm)}>
+                    {showAddForm ? 'Отмена' : 'Добавить датчик'}
+                </button>
             </div>
 
             {showAddForm && (

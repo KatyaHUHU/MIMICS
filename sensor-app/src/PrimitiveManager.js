@@ -41,7 +41,7 @@ const PrimitiveManager = () => {
 
     return (
         <div>
-            <h2>Добавление примитивов</h2>
+            <h2>Добавление эпизодов</h2>
             <div>
                 <h3>Константа</h3>
                 <input
@@ -81,7 +81,7 @@ const PrimitiveManager = () => {
                 <button onClick={() => addPrimitive('noise')}>Добавить шум</button>
             </div>
 
-            <h3>Список примитивов</h3>
+            <h3>Список эпизодов</h3>
             <ul>
                 {primitives.map((primitive, index) => (
                     <li key={index}>
