@@ -2,7 +2,7 @@ import paho.mqtt.client as mqtt
 import json
 import time
 import logging
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 class MQTTPublisher:
     def __init__(self, config: Dict[str, Any]):
@@ -14,7 +14,6 @@ class MQTTPublisher:
         self.logger = logging.getLogger("MQTT")
         self.client.loop_start()
         
-        # Callback для логирования
         self.client.on_publish = self._on_publish
         self.client.on_connect = self._on_connect
 
@@ -27,13 +26,13 @@ class MQTTPublisher:
     def _on_publish(self, client, userdata, mid):
         self.logger.debug(f"Message {mid} published")
 
-    def publish_packet(self, packet: list, timestamp: float = None):
+    def publish_packet(self, packet: List[Dict], target_time: float = None):
         """Отправка пакета данных"""
         payload = {
-            "timestamp": timestamp or time.time(),
-            "values": packet,
             "sensor_id": "mimics_v1",
-            "packet_size": len(packet)
+            "packet": packet,
+            "packet_size": len(packet),
+            "packet_timestamp": target_time or time.time()
         }
         self.client.publish(
             topic=self.topic,

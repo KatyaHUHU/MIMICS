@@ -2,7 +2,7 @@ import time
 import json
 import logging
 from threading import Thread, Event
-from typing import Dict, Union
+from typing import Dict, Union, List
 from .scenario import Scenario
 
 class DataGenerator:
@@ -21,18 +21,21 @@ class DataGenerator:
         if self.thread and self.thread.is_alive():
             self.stop()
 
+        if frequency_hz % packets_per_sec != 0:
+            raise ValueError("Frequency must be divisible by packets_per_sec")
+
         self.current_scenario = self._load_scenario(scenario_config)
         values_per_packet = frequency_hz // packets_per_sec
-        packet_interval = 1.0 / packets_per_sec
-        
+        time_step = 1.0 / frequency_hz
+
         self._stop_event.clear()
         self.thread = Thread(
             target=self._generation_loop,
-            args=(values_per_packet, packet_interval),
+            args=(values_per_packet, time_step, 1.0/packets_per_sec),
             daemon=True
         )
         self.thread.start()
-        self.logger.info(f"Started streaming at {frequency_hz}Hz")
+        self.logger.info(f"Started streaming at {frequency_hz}Hz ({packets_per_sec} packets/sec)")
 
     def _load_scenario(self, config: Union[Dict, str]) -> Scenario:
         """Загрузка сценария из конфига"""
@@ -41,24 +44,29 @@ class DataGenerator:
                 config = json.load(f)
         return Scenario.from_json(config)
 
-    def _generation_loop(self, values_per_packet: int, interval: float):
+    def _generation_loop(self, values_per_packet: int, time_step: float, packet_interval: float):
         """Основной цикл генерации данных"""
         next_packet_time = time.time()
         
         while not self._stop_event.is_set():
             packet = []
-            for _ in range(values_per_packet):
+            packet_start_time = self.current_scenario.current_time
+            
+            for i in range(values_per_packet):
                 if self._stop_event.is_set():
                     break
                 
                 value = self.current_scenario.get_value()
-                packet.append(round(value, 4))
-                self.current_scenario.advance_time(1.0 / (values_per_packet * interval))
+                packet.append({
+                    "value": round(value, 4),
+                    "timestamp": packet_start_time + i * time_step
+                })
+                self.current_scenario.advance_time(time_step)
             
             if packet:
                 self.mqtt.publish_packet(packet, next_packet_time)
             
-            next_packet_time += interval
+            next_packet_time += packet_interval
             sleep_time = next_packet_time - time.time()
             if sleep_time > 0:
                 time.sleep(sleep_time)
