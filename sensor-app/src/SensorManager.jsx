@@ -59,37 +59,27 @@ const SensorManager = () => {
     const fetchPrimitives = async () => {
         try {
             const response = await fetch('http://localhost:5000/primitives');
-            if (!response.ok) throw new Error('Network response was not ok');
+
+            if (!response.ok) {
+                const errorMessage = await response.text();
+                throw new Error(`Ошибка сети: ${response.status} ${response.statusText} - ${errorMessage}`);
+            }
+
             const data = await response.json();
+
+            if (!data || data.length === 0) {
+                console.warn('Полученные данные пусты');
+                // Можно установить состояние с пустым массивом или оставить его прежним
+                setPrimitives([]);
+                return;
+            }
+
             setPrimitives(data);
         } catch (error) {
             console.error('Ошибка при загрузке данных:', error);
+            // Можно также добавить обработку отображения ошибки пользователю
         }
     };
-
-    const addPrimitive = async (newPrimitive) => {
-        const response = await fetch('http://localhost:5000/primitives', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(newPrimitive),
-        });
-
-        if (response.ok) {
-            await fetchPrimitives(); // Обновляем список примитивов после успешного добавления
-        } else {
-            console.error('Ошибка при добавлении примитива');
-        }
-
-        const data = await response.json();
-        setPrimitives(data);
-
-    };
-
-        //const data = await response.json();
-        //setPrimitives(data);
-    //};
 
     const deletePrimitive = async (index) => {
         const response = await fetch(`http://localhost:5000/primitives/${index}`, {
@@ -100,18 +90,29 @@ const SensorManager = () => {
         setPrimitives(data);
     };
 
-    const downloadJSON = () => {
-        const dataStr = JSON.stringify(primitives, null, 2); // формируем JSON строку с отступами
-        const blob = new Blob([dataStr], { type: 'application/json' }); // создаем blob из строки
-        const url = URL.createObjectURL(blob); // создаем URL для blob
+    const downloadJSON = async () => {
+        // Если primitives еще не загружены, загружаем их только на поврежденной странице
+        if (primitives.length === 0) {
+            await fetchPrimitives();
+        }
 
-        const a = document.createElement('a'); // создаем ссылку для скачивания
+        if (primitives.length === 0) {
+            console.error('Нет данных для загрузки');
+            return; // Не загружать файл, если данных нет
+        }
+
+        console.log(primitives); // Проверка содержимого primitives
+        const dataStr = JSON.stringify(primitives, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
         a.href = url;
-        a.download = 'primitives.json'; // имя файла, под которым будет скачан
-        document.body.appendChild(a); // добавляем ссылку в DOM
-        a.click(); // инициируем клик по ссылке
-        document.body.removeChild(a); // удаляем ссылку из DOM
-        URL.revokeObjectURL(url); // освобождаем память
+        a.download = 'primitives.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     };
 
     if (selectedSensor) {
@@ -131,7 +132,6 @@ const SensorManager = () => {
                             </li>
                         ))}
                     </ul>
-                    <button onClick={() => addPrimitive({ name: 'новый эпизод' })}>Add Primitive</button>
                     <button onClick={downloadJSON}>Скачать настройки сценария JSON</button> {/* Кнопка для скачивания */}
 
                 </div>
