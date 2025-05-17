@@ -2,28 +2,7 @@ import React from "react";
 import api from './api';
 import { saveAs } from "file-saver";
 
-export default function DownloadScenarioButton() {
-  const scenario = {
-    name: "Temperature Sensor Simulation",
-    episodes: [
-      {
-        primitive_type: "constant",
-        config: { value: 22.5 },
-        duration: 5.0,
-        is_looped: false
-      },
-      {
-        primitive_type: "formula",
-        config: {
-          expression: "A * Math.sin(2 * Math.PI * t / period) + B",
-          variables: { A: 2.5, B: 22.5, period: 10.0 }
-        },
-        duration: 30.0,
-        is_looped: true
-      }
-    ]
-  };
-
+export default function DownloadScenarioButton({ scenario }) {
   const handleClick = async () => {
     try {
       // Отправляем сценарий на бекенд: получаем файл + старт генерации
@@ -42,7 +21,7 @@ export default function DownloadScenarioButton() {
       onClick={handleClick}
       className="rounded-2xl bg-blue-600 hover:bg-blue-700 px-6 py-3 text-white shadow-lg transition-all duration-300 ease-in-out"
     >
-      Скачать JSON и запустить
+      Скачать JSON и запустить
     </button>
   );
 }

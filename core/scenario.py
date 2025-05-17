@@ -1,7 +1,7 @@
 from typing import List, Dict, Any
 import json
 import math
-from .primitives import ConstantPrimitive, FormulaPrimitive
+from .primitives import ConstantPrimitive, FormulaPrimitive, NoisePrimitive
 
 class Episode:
     def __init__(self, primitive, duration: float, is_looped: bool = False):
@@ -47,6 +47,11 @@ class Scenario:
                 primitive = FormulaPrimitive(
                     config["expression"],
                     config.get("variables", {})
+                )
+            elif primitive_type == "noise":
+                primitive = NoisePrimitive(
+                    config.get("mean", 0.0),
+                    config.get("amplitude", 1.0)
                 )
             else:
                 raise ValueError(f"Unknown primitive type: {primitive_type}")

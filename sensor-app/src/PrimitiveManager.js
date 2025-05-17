@@ -1,14 +1,17 @@
 ﻿// sensor-app/src/PrimitiveManager.js
 import React, { useState, useEffect } from 'react';
-import api from './api';   // ← единый экземпляр axios с baseURL=http://localhost:8000
+import api from './api';
+import './PrimitiveManager.css';
 
 const PrimitiveManager = ({ primitives, setPrimitives }) => {
-  const [constant, setConstant] = useState('');
-  const [trigFunction, setTrigFunction] = useState('');
-  const [noiseMin, setNoiseMin] = useState('');
-  const [noiseMax, setNoiseMax] = useState('');
+  const [constantValue, setConstantValue] = useState('25.0');
+  const [formulaExpression, setFormulaExpression] = useState('A * math.sin(2 * math.pi * t / period) + B');
+  const [formulaVariables, setFormulaVariables] = useState('{"A": 2.5, "B": 22.5, "period": 10.0}');
+  const [noiseMean, setNoiseMean] = useState('0.0');
+  const [noiseAmplitude, setNoiseAmplitude] = useState('1.0');
+  const [duration, setDuration] = useState('10.0');
+  const [isLooped, setIsLooped] = useState(false);
 
-  // Загружаем эпизоды (примитивы) из FastAPI
   useEffect(() => {
     fetchPrimitives();
   }, []);
@@ -23,18 +26,36 @@ const PrimitiveManager = ({ primitives, setPrimitives }) => {
     }
   };
 
-  const addPrimitive = async (type) => {
+  const addPrimitive = async (primitiveType) => {
     let newPrimitive;
-    if (type === 'constant') {
-      newPrimitive = { type, value: constant };
-      setConstant('');
-    } else if (type === 'trigonometric') {
-      newPrimitive = { type, formula: trigFunction };
-      setTrigFunction('');
-    } else if (type === 'noise') {
-      newPrimitive = { type, min: noiseMin, max: noiseMax };
-      setNoiseMin('');
-      setNoiseMax('');
+    
+    if (primitiveType === 'constant') {
+      newPrimitive = {
+        primitive_type: 'constant',
+        config: { value: parseFloat(constantValue) },
+        duration: parseFloat(duration),
+        is_looped: isLooped
+      };
+    } else if (primitiveType === 'formula') {
+      newPrimitive = {
+        primitive_type: 'formula',
+        config: {
+          expression: formulaExpression,
+          variables: JSON.parse(formulaVariables)
+        },
+        duration: parseFloat(duration),
+        is_looped: isLooped
+      };
+    } else if (primitiveType === 'noise') {
+      newPrimitive = {
+        primitive_type: 'noise',
+        config: {
+          mean: parseFloat(noiseMean),
+          amplitude: parseFloat(noiseAmplitude)
+        },
+        duration: parseFloat(duration),
+        is_looped: isLooped
+      };
     }
 
     try {
@@ -55,64 +76,109 @@ const PrimitiveManager = ({ primitives, setPrimitives }) => {
   };
 
   return (
-    <div>
-      <h2>Добавление эпизодов</h2>
+    <div className="primitive-manager">
+      <h2>Эпизоды сценария</h2>
+      
+      <div className="common-settings">
+        <h3>Общие настройки</h3>
+        <div>
+          <label>Длительность (секунды): </label>
+          <input
+            type="number"
+            value={duration}
+            onChange={e => setDuration(e.target.value)}
+            step="0.1"
+            min="0.1"
+          />
+        </div>
+        <div>
+          <label>Зациклить: </label>
+          <input
+            type="checkbox"
+            checked={isLooped}
+            onChange={e => setIsLooped(e.target.checked)}
+          />
+        </div>
+      </div>
 
-      <div>
+      <div className="primitive-section">
         <h3>Константа</h3>
-        <input
-          type="number"
-          value={constant}
-          onChange={e => setConstant(e.target.value)}
-        />
-        <button onClick={() => addPrimitive('constant')}>
-          Добавить константу
-        </button>
+        <div>
+          <label>Значение: </label>
+          <input
+            type="number"
+            value={constantValue}
+            onChange={e => setConstantValue(e.target.value)}
+            step="0.1"
+          />
+          <button onClick={() => addPrimitive('constant')}>
+            Добавить константу
+          </button>
+        </div>
       </div>
 
-      <div>
+      <div className="primitive-section">
         <h3>Тригонометрическая формула</h3>
-        <select
-          value={trigFunction}
-          onChange={e => setTrigFunction(e.target.value)}
-        >
-          <option value="">Выберите формулу</option>
-          <option value="cos()">cos()</option>
-          <option value="sin()">sin()</option>
-          <option value="tg()">tg()</option>
-          <option value="ctg()">ctg()</option>
-        </select>
-        <button onClick={() => addPrimitive('trigonometric')}>
-          Добавить тригонометрическую формулу
-        </button>
+        <div>
+          <label>Выражение: </label>
+          <input
+            type="text"
+            value={formulaExpression}
+            onChange={e => setFormulaExpression(e.target.value)}
+          />
+        </div>
+        <div>
+          <label>Переменные (JSON): </label>
+          <input
+            type="text"
+            value={formulaVariables}
+            onChange={e => setFormulaVariables(e.target.value)}
+          />
+          <button onClick={() => addPrimitive('formula')}>
+            Добавить формулу
+          </button>
+        </div>
       </div>
 
-      <div>
+      <div className="primitive-section">
         <h3>Шум</h3>
-        <input
-          type="number"
-          placeholder="Минимум"
-          value={noiseMin}
-          onChange={e => setNoiseMin(e.target.value)}
-        />
-        <input
-          type="number"
-          placeholder="Максимум"
-          value={noiseMax}
-          onChange={e => setNoiseMax(e.target.value)}
-        />
-        <button onClick={() => addPrimitive('noise')}>
-          Добавить шум
-        </button>
+        <div>
+          <label>Среднее значение: </label>
+          <input
+            type="number"
+            value={noiseMean}
+            onChange={e => setNoiseMean(e.target.value)}
+            step="0.1"
+          />
+        </div>
+        <div>
+          <label>Амплитуда: </label>
+          <input
+            type="number"
+            value={noiseAmplitude}
+            onChange={e => setNoiseAmplitude(e.target.value)}
+            step="0.1"
+            min="0"
+          />
+          <button onClick={() => addPrimitive('noise')}>
+            Добавить шум
+          </button>
+        </div>
       </div>
 
       <h3>Список эпизодов</h3>
-      <ul>
+      <ul className="primitives-list">
         {primitives.map((primitive, index) => (
-          <li key={index}>
-            {primitive.type === 'constant' && `Константа: ${primitive.value}`}
-            {primitive.type === 'trigonometric' && `Форма: ${primitive.formula}`}
-            {primitive.type === 'noise' && `Шум: min=${primitive.min}, max=${primitive.max}`}
+          <li key={index} className="primitive-item">
+            <div>
+              <strong>Тип:</strong> {primitive.primitive_type}
+              <br />
+              <strong>Конфигурация:</strong> {JSON.stringify(primitive.config)}
+              <br />
+              <strong>Длительность:</strong> {primitive.duration} сек.
+              <br />
+              <strong>Зациклено:</strong> {primitive.is_looped ? 'Да' : 'Нет'}
+            </div>
             <button onClick={() => deletePrimitive(index)}>
               Удалить
             </button>

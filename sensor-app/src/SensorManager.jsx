@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import './SensorManager.css';
 import PrimitiveManager from './PrimitiveManager';
 import DownloadScenarioButton from './DownloadScenarioButton';
+import GraphWindow from './GraphWindow';
 import api from './api';
 
 const SensorManager = () => {
@@ -19,6 +20,9 @@ const SensorManager = () => {
   const [selectedSensor, setSelectedSensor] = useState(null);
   const [showPrimitiveManager, setShowPrimitiveManager] = useState(false);
   const [primitives, setPrimitives] = useState([]);
+  
+  // Состояние для отображения графика
+  const [showGraph, setShowGraph] = useState(false);
 
   // Загрузка примитивов при первом рендере
   useEffect(() => {
@@ -112,18 +116,33 @@ const SensorManager = () => {
             ))}
           </ul>
 
-          {/* Кнопка «Скачать JSON и запустить генератор» */}
-          <DownloadScenarioButton
-            scenario={{
-              name: `Сценарий: ${selectedSensor.name}`,
-              episodes: primitives,
-            }}
-          />
+          <div className="buttons-container">
+            {/* Кнопка «Скачать JSON и запустить генератор» */}
+            <DownloadScenarioButton
+              scenario={{
+                name: `Сценарий: ${selectedSensor.name}`,
+                episodes: primitives,
+              }}
+            />
+            
+            {/* Кнопка просмотра графика */}
+            <button 
+              onClick={() => setShowGraph(true)}
+              className="view-graph-btn"
+            >
+              Просмотр графика данных
+            </button>
+          </div>
         </div>
 
         <button onClick={backToMainMenu} className="back-btn">
           ← Назад к списку датчиков
         </button>
+        
+        {/* Окно с графиком (отображается поверх текущего экрана) */}
+        {showGraph && (
+          <GraphWindow onClose={() => setShowGraph(false)} />
+        )}
       </div>
     );
   }
@@ -202,6 +221,20 @@ const SensorManager = () => {
           </div>
         )}
       </div>
+      
+      <div className="control-panel">
+        <button 
+          onClick={() => setShowGraph(true)}
+          className="view-graph-btn"
+        >
+          Просмотр графика данных
+        </button>
+      </div>
+      
+      {/* Окно с графиком (отображается поверх текущего экрана) */}
+      {showGraph && (
+        <GraphWindow onClose={() => setShowGraph(false)} />
+      )}
     </div>
   );
 };

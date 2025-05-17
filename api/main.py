@@ -2,6 +2,7 @@ import sys
 from pathlib import Path
 import logging
 import json
+import asyncio
 from fastapi import FastAPI, HTTPException, WebSocket, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -33,6 +34,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Импортируем и регистрируем WebSocket маршруты
+from ws_handler import router as ws_router, process_data_queue
+app.include_router(ws_router)
+
 # Примитивы (эпизоды) — временное хранилище
 primitives_data = []
 
@@ -62,7 +67,6 @@ MQTT_CONFIG = {
     "qos": 1,
 }
 
-
 # Плейсхолдеры для MQTT и генератора, инициализируются при старте
 mqtt_publisher: MQTTPublisher
 data_generator: DataGenerator
@@ -70,9 +74,14 @@ data_generator: DataGenerator
 @app.on_event("startup")
 async def startup_event():
     global mqtt_publisher, data_generator
+    
+    # Инициализация MQTT и генератора данных
     mqtt_publisher = MQTTPublisher(MQTT_CONFIG)
     data_generator = DataGenerator(mqtt_publisher)
     logger.info(f"MQTT: Connected to broker {MQTT_CONFIG['broker']}:{MQTT_CONFIG['port']}")
+    
+    # Запускаем фоновую задачу обработки очереди данных для WebSocket
+    asyncio.create_task(process_data_queue())
 
 @app.get("/")
 async def root():
@@ -122,17 +131,6 @@ async def download_scenario(scenario: ScenarioSchema):
         headers=headers,
         background=task,
     )
-
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
-    try:
-        while True:
-            await websocket.receive_text()
-    except Exception as e:
-        logger.error("WebSocket error: %s", e)
-    finally:
-        await websocket.close()
 
 if __name__ == "__main__":  # Для запуска без Uvicorn CLI
     import uvicorn

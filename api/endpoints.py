@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from db.config import get_db
+from db.models import ScenarioDB
 from db.repository import ScenarioRepository
 from core.scenario import Scenario, Episode
 from core.primitives.constant import ConstantPrimitive

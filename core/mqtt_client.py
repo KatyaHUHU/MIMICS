@@ -3,9 +3,14 @@ import json
 import time
 import uuid
 import logging
+import sys
+from pathlib import Path
 from typing import Dict, Any, List
 
 import paho.mqtt.client as mqtt
+
+# Добавляем пути для импорта модулей из других директорий
+sys.path.append(str(Path(__file__).parent.parent))
 
 logger = logging.getLogger("MQTT")
 
@@ -14,7 +19,7 @@ class MQTTPublisher:
     """
     Лёгкий обёртка‑паблишер для работы с публичным брокером test.mosquitto.org.
     Создаёт уникальный Client‑ID и всегда открывает clean session, чтобы
-    брокер не отвечал «Not authorized» (rc = 7) при повторных коннектах.
+    брокер не отвечал «Not authorized» (rc = 7) при повторных коннектах.
     """
 
     def __init__(self, config: Dict[str, Any]):
@@ -84,6 +89,7 @@ class MQTTPublisher:
     def publish_packet(self, packet: List[Dict[str, Any]], target_time: float | None = None):
         """
         Формирует «обёртку» пакета и публикует JSON.
+        Также добавляет данные в очередь для WebSocket.
         """
         payload = {
             "sensor_id": "mimics_v1",
@@ -94,6 +100,19 @@ class MQTTPublisher:
         data = json.dumps(payload, ensure_ascii=False)
         logger.info(f"MQTT: Publishing packet → {self.topic}: {data}")
         self.client.publish(self.topic, payload=data, qos=self.qos)
+        
+        # Добавляем данные в очередь для WebSocket
+        try:
+            # Импортируем напрямую из api директории
+            from api.data_queue import add_data_to_queue
+            add_data_to_queue(payload)
+        except ImportError:
+            logger.debug("WebSocket queue handler not available")
+            # Если модуль не найден, выводим более информативное сообщение
+            import traceback
+            logger.debug(f"Import path details: {traceback.format_exc()}")
+        except Exception as e:
+            logger.error(f"Error adding data to queue: {e}")
 
     # --------------------------------------------------------------------- #
 
