@@ -5,6 +5,7 @@ import './GraphWindow.css';
 const GraphWindow = ({ onClose }) => {
   const [data, setData] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState(null);
   const wsRef = useRef(null);
   const chartRef = useRef(null);
 
@@ -24,8 +25,9 @@ const GraphWindow = ({ onClose }) => {
       
       ws.onmessage = (event) => {
         try {
-          console.log("WebSocket message received", event.data.substring(0, 100) + "...");
+          console.log("WebSocket raw message received:", event.data.substring(0, 100) + "...");
           const payload = JSON.parse(event.data);
+          console.log("WebSocket parsed payload:", payload);
           
           // Разные форматы данных от сервера
           if (payload.packet && Array.isArray(payload.packet)) {
@@ -39,14 +41,22 @@ const GraphWindow = ({ onClose }) => {
             setData(prevData => {
               // Добавляем новые точки и ограничиваем до 100 последних
               const combined = [...prevData, ...newPoints];
+              console.log(`Updated data: ${combined.length} points total`);
+              setLastUpdate(new Date());
               return combined.slice(-100);
             });
           } else if (Array.isArray(payload)) {
             console.log(`Received array with ${payload.length} points`);
-            setData(payload.slice(-100));
+            if (payload.length > 0) {
+              setData(payload.slice(-100));
+              setLastUpdate(new Date());
+              console.log("Data updated from WebSocket array");
+            }
+          } else {
+            console.warn("Unknown data format received:", payload);
           }
         } catch (error) {
-          console.error("Error processing WebSocket data:", error);
+          console.error("Error processing WebSocket data:", error, "Raw data:", event.data);
         }
       };
       
@@ -69,14 +79,28 @@ const GraphWindow = ({ onClose }) => {
     // HTTP метод в качестве запасного варианта
     const fetchDataFallback = async () => {
       try {
+        console.log("Fetching data from HTTP fallback...");
         const response = await fetch('http://localhost:8000/data');
         if (response.ok) {
           const fetchedData = await response.json();
           console.log(`HTTP data received: ${fetchedData.length} points`);
           
+          // Важно: показываем данные только если их больше 0
           if (Array.isArray(fetchedData) && fetchedData.length > 0) {
-            setData(fetchedData.slice(-100));
+            setData(prevData => {
+              // Обновляем только если получили новые данные и их больше, чем у нас уже есть
+              if (fetchedData.length > prevData.length) {
+                setLastUpdate(new Date());
+                console.log("Data updated from HTTP: more points received");
+                return fetchedData.slice(-100);
+              }
+              return prevData;
+            });
+          } else {
+            console.log("Empty data array received from HTTP");
           }
+        } else {
+          console.warn("HTTP response not OK:", response.status);
         }
       } catch (error) {
         console.error("HTTP data fetch error:", error);
@@ -100,9 +124,15 @@ const GraphWindow = ({ onClose }) => {
   const formatTime = (timestamp) => {
     if (!timestamp || isNaN(timestamp)) return '';
     try {
+      // Если это время симуляции, просто форматируем как секунды
+      if (timestamp < 1000000) { // Это время симуляции, а не unix timestamp
+        return `${timestamp.toFixed(1)}с`;
+      }
+      // Иначе это unix timestamp, преобразуем в дату
       return new Date(timestamp * 1000).toLocaleTimeString();
     } catch (e) {
-      return timestamp.toString();
+      console.error("Error formatting timestamp:", timestamp, e);
+      return String(timestamp);
     }
   };
 
@@ -120,6 +150,11 @@ const GraphWindow = ({ onClose }) => {
         Статус соединения: {isConnected ? 
           <span className="connected">Подключено</span> : 
           <span className="disconnected">Отключено</span>}
+        {lastUpdate && 
+          <div className="last-update">
+            Последнее обновление: {lastUpdate.toLocaleTimeString()}
+          </div>
+        }
       </div>
       
       <div className="chart-container" ref={chartRef}>
@@ -137,6 +172,7 @@ const GraphWindow = ({ onClose }) => {
               />
               <YAxis 
                 label={{ value: 'Значение', angle: -90, position: 'insideLeft' }}
+                domain={['auto', 'auto']}
               />
               <Tooltip 
                 formatter={(value) => [value, 'Значение']}

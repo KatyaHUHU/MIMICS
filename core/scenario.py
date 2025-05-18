@@ -28,9 +28,20 @@ class Scenario:
         if not self.episodes:
             raise ValueError("Scenario must have at least one episode")
         
-        total_duration = sum(ep.duration for ep in self.episodes if not ep.is_looped)
-        if total_duration <= 0:
-            raise ValueError("Scenario must have positive duration")
+        # Если есть хотя бы один зацикленный эпизод с положительной длительностью, сценарий корректный
+        has_valid_looped = any(ep.is_looped and ep.duration > 0 for ep in self.episodes)
+        
+        # Проверка для незацикленных эпизодов
+        total_non_looped_duration = sum(ep.duration for ep in self.episodes if not ep.is_looped)
+        
+        # Сценарий валиден, если у нас либо есть валидный зацикленный эпизод,
+        # либо незацикленные эпизоды имеют положительную длительность
+        if not has_valid_looped and total_non_looped_duration <= 0:
+            raise ValueError("Scenario must have either a looped episode with positive duration or non-looped episodes with positive total duration")
+            
+            total_duration = sum(ep.duration for ep in self.episodes if not ep.is_looped)
+            if total_duration <= 0:
+                raise ValueError("Scenario must have positive duration")
 
     @classmethod
     def from_json(cls, config: Dict[str, Any]):
