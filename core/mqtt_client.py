@@ -105,51 +105,13 @@ class MQTTPublisher:
         
         # Добавляем данные в очередь для WebSocket
         try:
-            # Прежде чем импортировать модуль, сохраним локальную копию пакета
-            packet_data = payload
+            # Импортируем функцию вместо прямого доступа к переменным
+            sys.path.insert(0, str(project_root))
+            from api.data_queue import add_data_to_queue
             
-            # Попытка непосредственного импорта
-            try:
-                # Сначала пробуем явный импорт из api
-                sys.path.append(str(project_root / 'api'))
-                
-                # Явно импортируем модуль
-                import api.data_queue
-                
-                # Прямой доступ к переменным модуля
-                for point in packet_data["packet"]:
-                    api.data_queue.latest_data.append({
-                        "timestamp": point["timestamp"],
-                        "value": point["value"]
-                    })
-                
-                # Добавляем в очередь для WebSocket обработки
-                api.data_queue.data_queue.put(packet_data)
-                logger.info(f"Данные добавлены в очередь WebSocket: {len(packet)} точек")
-            except (ImportError, AttributeError) as e:
-                logger.warning(f"Первичный импорт не удался: {e}")
-                
-                # Попробуем альтернативный способ импорта
-                try:
-                    # Обновим sys.path
-                    sys.path.insert(0, str(project_root))
-                    
-                    # Импортируем напрямую из api директории
-                    from api.data_queue import latest_data, data_queue
-                    
-                    # Добавляем данные в коллекции
-                    for point in packet_data["packet"]:
-                        latest_data.append({
-                            "timestamp": point["timestamp"],
-                            "value": point["value"]
-                        })
-                    
-                    # Ставим в очередь для обработки
-                    data_queue.put(packet_data)
-                    logger.info(f"Данные добавлены в очередь WebSocket (альтернативный метод): {len(packet)} точек")
-                except Exception as e:
-                    logger.error(f"Альтернативный импорт не удался: {e}")
-                    raise
+            # Используем функцию для добавления данных в очередь
+            add_data_to_queue(payload)
+            logger.info(f"Данные добавлены в очередь через add_data_to_queue: {len(packet)} точек")
         except Exception as e:
             logger.error(f"Ошибка передачи в WebSocket: {e}")
             import traceback

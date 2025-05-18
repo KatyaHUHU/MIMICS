@@ -20,7 +20,7 @@ from schemas import ScenarioSchema, StartRequest
 
 # Настройка логирования
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format="%(levelname)s:%(name)s:%(message)s"
 )
 
@@ -38,7 +38,8 @@ app.add_middleware(
 )
 
 # Явно импортируем модули для работы с данными и WebSocket
-from api.data_queue import latest_data, websocket_clients, data_queue, process_data_queue
+from api.shared_state import latest_data, websocket_clients, data_queue
+from api.data_queue import process_data_queue
 from api.ws_handler import router as ws_router
 
 # Регистрируем маршруты WebSocket

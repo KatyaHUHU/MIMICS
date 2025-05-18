@@ -2,16 +2,19 @@ from collections import deque
 import queue
 import asyncio
 import logging
+import sys
+from pathlib import Path
+
+# Добавляем корневой каталог в путь импорта
+project_root = Path(__file__).parent.parent.absolute()
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+# Импортируем общее состояние
+from api.shared_state import latest_data, websocket_clients, data_queue
 
 # Настройка логирования
 logger = logging.getLogger("WSQueue")
-
-# Хранилище данных для HTTP API
-latest_data = deque(maxlen=1000)
-# Список WebSocket-клиентов
-websocket_clients = []
-# Обычная потокобезопасная очередь (не asyncio.Queue)
-data_queue = queue.Queue()
 
 def add_data_to_queue(data):
     """Добавляет данные в очередь из любого потока"""
@@ -24,6 +27,10 @@ def add_data_to_queue(data):
                     "value": point["value"]
                 })
             logger.info(f"HTTP: Добавлено {len(data['packet'])} точек в latest_data, всего: {len(latest_data)}")
+            logger.debug(f"latest_data после добавления: {len(latest_data)} точек, последняя точка: {latest_data[-1] if latest_data else 'нет данных'}")
+            # Добавим эту строку для отладки - выведем первые несколько точек, чтобы убедиться, что данные есть
+            if latest_data:
+                logger.debug(f"Примеры данных: {list(latest_data)[:3]}")
         
         # Потокобезопасная операция, которая работает в любом потоке
         data_queue.put(data)
@@ -38,6 +45,10 @@ async def process_data_queue():
     logger.info("WebSocket background task started")
     while True:
         try:
+            # Отладочный вывод
+            logger.debug(f"WebSocket clients: {len(websocket_clients)}, Queue size: {data_queue.qsize()}")
+            logger.debug(f"latest_data содержит {len(latest_data)} точек")
+            
             # Проверяем очередь, не блокируя поток
             if not data_queue.empty():
                 # Получаем данные из очереди

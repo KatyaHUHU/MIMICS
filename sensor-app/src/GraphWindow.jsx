@@ -27,11 +27,12 @@ const GraphWindow = ({ onClose }) => {
         try {
           console.log("WebSocket raw message received:", event.data.substring(0, 100) + "...");
           const payload = JSON.parse(event.data);
-          console.log("WebSocket parsed payload:", payload);
+          console.log("WebSocket parsed payload:", typeof payload, Array.isArray(payload));
           
           // Разные форматы данных от сервера
           if (payload.packet && Array.isArray(payload.packet)) {
             console.log(`Received MQTT packet with ${payload.packet.length} points`);
+            console.log("First point:", payload.packet[0]);
             
             const newPoints = payload.packet.map(point => ({
               timestamp: point.timestamp,
@@ -48,6 +49,7 @@ const GraphWindow = ({ onClose }) => {
           } else if (Array.isArray(payload)) {
             console.log(`Received array with ${payload.length} points`);
             if (payload.length > 0) {
+              console.log("First point:", payload[0]);
               setData(payload.slice(-100));
               setLastUpdate(new Date());
               console.log("Data updated from WebSocket array");
