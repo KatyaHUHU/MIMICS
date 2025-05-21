@@ -1,4 +1,5 @@
 ﻿// sensor-app/src/PrimitiveManager.js
+
 import React, { useState, useEffect } from 'react';
 import api from './api';
 import './PrimitiveManager.css';
@@ -18,24 +19,6 @@ const PrimitiveManager = ({ primitives, setPrimitives }) => {
   // Состояние для сообщений об ошибках/успехе
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState(''); // 'success' или 'error'
-
-  // Загрузка примитивов при монтировании компонента
-  useEffect(() => {
-    fetchPrimitives();
-  }, []);
-
-  // Функция для загрузки примитивов с сервера
-  const fetchPrimitives = async () => {
-    try {
-      const { data } = await api.get('/primitives');
-      setPrimitives(Array.isArray(data) ? data : []);
-      setMessage('');
-    } catch (err) {
-      console.error('Не удалось загрузить примитивы:', err);
-      setPrimitives([]);
-      showMessage('Ошибка загрузки примитивов с сервера', 'error');
-    }
-  };
 
   // Функция для отображения сообщений
   const showMessage = (text, type = 'success') => {
@@ -138,28 +121,19 @@ const PrimitiveManager = ({ primitives, setPrimitives }) => {
       return;
     }
 
-    // Отправка примитива на сервер
-    try {
-      await api.post('/primitives', newPrimitive);
-      await fetchPrimitives();
-      
-      showMessage(`Примитив типа "${primitiveType}" успешно добавлен`, 'success');
-    } catch (err) {
-      console.error('Не удалось добавить примитив:', err);
-      showMessage(`Ошибка при добавлении примитива: ${err.message}`, 'error');
-    }
+    // ИЗМЕНЕНИЕ: Добавляем примитив локально, не вызывая API
+    const updatedPrimitives = [...primitives, newPrimitive];
+    setPrimitives(updatedPrimitives);
+    showMessage(`Примитив типа "${primitiveType}" успешно добавлен`, 'success');
   };
 
   // Функция для удаления примитива
-  const deletePrimitive = async (index) => {
-    try {
-      const { data } = await api.delete(`/primitives/${index}`);
-      setPrimitives(Array.isArray(data) ? data : []);
-      showMessage('Примитив успешно удален', 'success');
-    } catch (err) {
-      console.error('Ошибка при удалении примитива:', err);
-      showMessage(`Не удалось удалить примитив: ${err.message}`, 'error');
-    }
+  const deletePrimitive = (index) => {
+    // ИЗМЕНЕНИЕ: Удаляем примитив локально, не вызывая API
+    const updatedPrimitives = [...primitives];
+    updatedPrimitives.splice(index, 1);
+    setPrimitives(updatedPrimitives);
+    showMessage('Примитив успешно удален', 'success');
   };
 
   // Функция для форматирования JSON
