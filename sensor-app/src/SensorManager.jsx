@@ -23,11 +23,27 @@ const SensorManager = () => {
   
   // Состояние для отображения графика
   const [showGraph, setShowGraph] = useState(false);
+  
+  // Состояние для отслеживания статуса генерации
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
 
   // Загрузка примитивов при первом рендере
   useEffect(() => {
     fetchPrimitives();
+    // Проверим текущий статус генерации при загрузке
+    checkGenerationStatus();
   }, []);
+
+  // Функция для проверки статуса генерации
+  const checkGenerationStatus = async () => {
+    try {
+      const { data } = await api.get('/status');
+      setIsGenerating(data.is_running);
+    } catch (err) {
+      console.error('Не удалось получить статус генерации:', err);
+    }
+  };
 
   // --- СЕТЬ: Примитивы на FastAPI (порт 8000 проксируется CRA) ---
   const fetchPrimitives = async () => {
@@ -47,6 +63,36 @@ const SensorManager = () => {
     } catch (err) {
       console.error('Ошибка при удалении примитива:', err);
     }
+  };
+  
+  // Функция для остановки генерации
+  const stopGeneration = async () => {
+    try {
+      const { data } = await api.post('/stop');
+      setIsGenerating(false);
+      setStatusMessage('Генерация остановлена');
+      
+      // Скрываем сообщение через 3 секунды
+      setTimeout(() => {
+        setStatusMessage('');
+      }, 3000);
+      
+      console.log('Генерация остановлена:', data);
+    } catch (err) {
+      console.error('Ошибка при остановке генерации:', err);
+      setStatusMessage('Ошибка при остановке генерации');
+    }
+  };
+  
+  // Функция для запуска генерации (через DownloadScenarioButton)
+  const startGeneration = () => {
+    setIsGenerating(true);
+    setStatusMessage('Генерация запущена');
+    
+    // Скрываем сообщение через 3 секунды
+    setTimeout(() => {
+      setStatusMessage('');
+    }, 3000);
   };
   // ---------------------------------------------------------------
 
@@ -77,6 +123,8 @@ const SensorManager = () => {
   const goToScenarioSettings = (sensor) => {
     setSelectedSensor(sensor);
     setShowPrimitiveManager(false);
+    // Проверяем статус генерации при переходе на экран настройки
+    checkGenerationStatus();
   };
 
   const backToMainMenu = () => {
@@ -94,10 +142,27 @@ const SensorManager = () => {
         <h2>Настройка сценариев для: {selectedSensor.name}</h2>
         <p>Тип датчика: {selectedSensor.type}</p>
 
+        {statusMessage && (
+          <div className={`status-message ${isGenerating ? 'success' : 'warning'}`}>
+            {statusMessage}
+          </div>
+        )}
+        
+        <div className="generation-status">
+          <div className={`status-indicator ${isGenerating ? 'active' : 'inactive'}`}>
+            <div className="status-dot"></div>
+            <span>Статус генерации: {isGenerating ? 'Активна' : 'Остановлена'}</span>
+          </div>
+        </div>
+
         <div className="scenario-content">
-          <button onClick={handleShowPrimitiveManager}>
-            Настройка примитивов
+          <button 
+            className="mimics-button primary"
+            onClick={handleShowPrimitiveManager}
+          >
+            Настройка эпизодов
           </button>
+          
           {showPrimitiveManager && (
             <PrimitiveManager
               primitives={primitives}
@@ -105,16 +170,30 @@ const SensorManager = () => {
             />
           )}
 
-          <ul>
-            {primitives.map((prim, idx) => (
-              <li key={idx} className="primitive-item">
-                {prim.name || JSON.stringify(prim)}
-                <button onClick={() => deletePrimitive(idx)}>
-                  Удалить
-                </button>
-              </li>
-            ))}
-          </ul>
+          {primitives.length > 0 && (
+            <div className="primitives-list">
+              <h3>Эпизоды сценария</h3>
+              {primitives.map((prim, idx) => (
+                <div key={idx} className="primitive-item">
+                  <div>
+                    <strong>
+                      {prim.primitive_type === 'constant' ? 'Константа' : 
+                       prim.primitive_type === 'formula' ? 'Формула' : 
+                       prim.primitive_type === 'noise' ? 'Шум' : 
+                       prim.primitive_type}
+                    </strong>
+                    <p>{JSON.stringify(prim.config)}</p>
+                  </div>
+                  <button 
+                    className="delete-button"
+                    onClick={() => deletePrimitive(idx)}
+                  >
+                    Удалить
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
 
           <div className="buttons-container">
             {/* Кнопка «Скачать JSON и запустить генератор» */}
@@ -123,7 +202,18 @@ const SensorManager = () => {
                 name: `Сценарий: ${selectedSensor.name}`,
                 episodes: primitives,
               }}
+              onSuccess={startGeneration}
             />
+            
+            {/* Кнопка остановки генерации */}
+            {isGenerating && (
+              <button 
+                onClick={stopGeneration}
+                className="stop-button"
+              >
+                Остановить генерацию
+              </button>
+            )}
             
             {/* Кнопка просмотра графика */}
             <button 
@@ -150,18 +240,19 @@ const SensorManager = () => {
   // --- Рендер главного экрана со списком датчиков ---
   return (
     <div className="sensor-manager">
-      <h1>MIMICS</h1>
-
       <div className="sensor-list">
         <h2>Список датчиков</h2>
         {sensors.length === 0 ? (
-          <p>Нет добавленных датчиков</p>
+          <div className="empty-list">
+            <p>Нет добавленных датчиков</p>
+            <p>Добавьте датчик, чтобы начать работу</p>
+          </div>
         ) : (
           <ul>
             {sensors.map(sensor => (
               <li key={sensor.id} className="sensor-item">
                 <div
-                  className="sensor-header"
+                  className={`sensor-header ${sensor.expanded ? 'expanded' : ''}`}
                   onClick={() => toggleExpand(sensor.id)}
                 >
                   <span>{sensor.name}</span>
@@ -172,7 +263,10 @@ const SensorManager = () => {
                     <p>Тип: {sensor.type}</p>
                     <p>ID: {sensor.id}</p>
                     <div className="sensor-actions">
-                      <button onClick={() => goToScenarioSettings(sensor)}>
+                      <button 
+                        onClick={() => goToScenarioSettings(sensor)}
+                        className="secondary"
+                      >
                         Настройка сценариев
                       </button>
                       <button

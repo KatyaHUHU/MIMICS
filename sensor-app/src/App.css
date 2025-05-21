@@ -1,38 +1,271 @@
+/* Импорт цветовой палитры */
+@import './colors.css';
+
+/* Основные стили приложения */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Roboto', 'Segoe UI', sans-serif;
+  background-color: var(--mimics-light-gray);
+  color: var(--mimics-black);
+  line-height: 1.6;
+}
+
 .App {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Шапка приложения (header) */
+.mimics-header {
+  background-color: var(--mimics-primary);
+  color: var(--mimics-white);
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--mimics-shadow-medium);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.mimics-logo {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.mimics-header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+/* Контейнер основного содержимого */
+.mimics-container {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px;
+  flex-grow: 1;
+}
+
+/* Типографика */
+h1, h2, h3, h4, h5, h6 {
+  margin-bottom: 16px;
+  color: var(--mimics-black);
+  font-weight: 600;
+}
+
+h1 {
+  font-size: 28px;
+  color: var(--mimics-primary);
+}
+
+h2 {
+  font-size: 24px;
+  border-bottom: 2px solid var(--mimics-primary-light);
+  padding-bottom: 8px;
+  margin-top: 24px;
+}
+
+h3 {
+  font-size: 20px;
+  margin-top: 20px;
+}
+
+p {
+  margin-bottom: 16px;
+}
+
+/* Кнопки */
+.mimics-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  background-color: var(--mimics-primary);
+  color: var(--mimics-white);
+  border: none;
+  border-radius: var(--mimics-border-radius-sm);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: uppercase;
+  transition: var(--mimics-transition);
+  box-shadow: var(--mimics-shadow-light);
+}
+
+.mimics-button:hover {
+  background-color: var(--mimics-primary-dark);
+  box-shadow: var(--mimics-shadow-medium);
+}
+
+.mimics-button:active {
+  transform: translateY(1px);
+}
+
+.mimics-button.secondary {
+  background-color: var(--mimics-secondary);
+}
+
+.mimics-button.secondary:hover {
+  background-color: #0288D1; /* Темнее вариант --mimics-secondary */
+}
+
+.mimics-button.outline {
+  background-color: transparent;
+  border: 2px solid var(--mimics-primary);
+  color: var(--mimics-primary);
+}
+
+.mimics-button.outline:hover {
+  background-color: rgba(126, 87, 194, 0.1); /* Легкий фон при наведении */
+}
+
+.mimics-button.danger {
+  background-color: var(--mimics-error);
+}
+
+.mimics-button.danger:hover {
+  background-color: #D32F2F; /* Темнее вариант --mimics-error */
+}
+
+.mimics-button.small {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.mimics-button.large {
+  padding: 12px 24px;
+  font-size: 16px;
+}
+
+.mimics-button.rounded {
+  border-radius: 50px;
+}
+
+.mimics-button.icon {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+}
+
+/* Поля ввода */
+.mimics-input {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--mimics-gray);
+  border-radius: var(--mimics-border-radius-sm);
+  font-size: 14px;
+  transition: var(--mimics-transition);
+}
+
+.mimics-input:focus {
+  outline: none;
+  border-color: var(--mimics-primary);
+  box-shadow: 0 0 0 3px rgba(126, 87, 194, 0.2);
+}
+
+.mimics-input-group {
+  margin-bottom: 16px;
+}
+
+.mimics-label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+/* Карточки */
+.mimics-card {
+  background-color: var(--mimics-white);
+  border-radius: var(--mimics-border-radius-md);
+  box-shadow: var(--mimics-shadow-light);
+  padding: 20px;
+  margin-bottom: 20px;
+  transition: var(--mimics-transition);
+}
+
+.mimics-card:hover {
+  box-shadow: var(--mimics-shadow-medium);
+}
+
+.mimics-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.mimics-card-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Утилиты */
+.text-center {
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.mb-0 {
+  margin-bottom: 0;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.mb-1 {
+  margin-bottom: 8px;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.mb-2 {
+  margin-bottom: 16px;
+}
+
+.mb-3 {
+  margin-bottom: 24px;
+}
+
+.flex {
   display: flex;
-  flex-direction: column;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.items-center {
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
 }
 
-.App-link {
-  color: #61dafb;
+.gap-1 {
+  gap: 8px;
 }
 
-@keyframes App-logo-spin {
+.gap-2 {
+  gap: 16px;
+}
+
+/* Анимации */
+@keyframes fadeIn {
   from {
-    transform: rotate(0deg);
+    opacity: 0;
+    transform: translateY(-10px);
   }
   to {
-    transform: rotate(360deg);
+    opacity: 1;
+    transform: translateY(0);
   }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
 }

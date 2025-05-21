@@ -1,87 +1,430 @@
+/* Импорт цветовой палитры */
+@import './colors.css';
+
 .sensor-manager {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 10px;
-    font-family: Arial, sans-serif;
-  }
-  
-  .add-sensor-form {
-    margin: 20px 0;
-    padding: 15px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    background-color: #f9f9f9;
-  }
-  
-  .add-sensor-form input,
-  .add-sensor-form select {
-    display: block;
-    margin: 10px 0;
-    padding: 8px;
-    width: 100%;
-    max-width: 300px;
-  }
-  
-  .sensor-list {
-    margin-top: 30px;
-  }
-  
-  .sensor-item {
-    margin-bottom: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    overflow: hidden;
-  }
-  
-  .sensor-header {
-    padding: 10px 15px;
-    background-color: #f0f0f0;
-    display: flex;
-    justify-content: space-between;
-    cursor: pointer;
-  }
-  
-  .sensor-header:hover {
-    background-color: #e0e0e0;
-  }
-  
-  .sensor-details {
-    padding: 15px;
-    background-color: white;
-  }
-  
-  .sensor-actions {
-    margin-top: 10px;
-    display: flex;
-    gap: 10px;
-  }
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Roboto', 'Segoe UI', sans-serif;
+}
+
+/* Шапка приложения */
+.mimics-header {
+  background-color: var(--mimics-primary);
+  color: white;
+  padding: 16px 24px;
+  margin-bottom: 30px;
+  border-radius: var(--mimics-border-radius-md);
+  box-shadow: var(--mimics-shadow-medium);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mimics-title {
+  font-size: 24px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  color: white;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+/* Блок инструментов */
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.toolbar-group {
+  display: flex;
+  gap: 10px;
+}
+
+/* Кнопки */
+button {
+  padding: 8px 16px;
+  background-color: var(--mimics-primary);
+  color: white;
+  border: none;
+  border-radius: var(--mimics-border-radius-sm);
+  cursor: pointer;
+  font-weight: 500;
+  transition: var(--mimics-transition);
+  box-shadow: var(--mimics-shadow-light);
+}
+
+button:hover {
+  background-color: var(--mimics-primary-dark);
+  box-shadow: var(--mimics-shadow-medium);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+button.secondary {
+  background-color: var(--mimics-secondary);
+}
+
+button.secondary:hover {
+  background-color: #0288D1; /* Темнее версия --mimics-secondary */
+}
+
+button.outline {
+  background-color: transparent;
+  border: 2px solid var(--mimics-primary);
+  color: var(--mimics-primary);
+}
+
+button.outline:hover {
+  background-color: rgba(126, 87, 194, 0.1);
+}
+
+button.danger {
+  background-color: var(--mimics-error);
+}
+
+button.danger:hover {
+  background-color: #D32F2F; /* Темнее версия --mimics-error */
+}
+
+.add-sensor-btn {
+  padding: 10px 16px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.add-sensor-btn::before {
+  content: "+";
+  font-size: 18px;
+  font-weight: bold;
+}
 
 .delete-btn {
-    background-color: #c4c4c4;
-    color: white;
+  background-color: var(--mimics-error);
 }
-  
-  .scenario-settings {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
+
+.delete-btn:hover {
+  background-color: #D32F2F;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--mimics-dark-gray);
+  margin-top: 20px;
+}
+
+.back-btn:hover {
+  background-color: #616161; /* Темнее версия --mimics-dark-gray */
+}
+
+.view-graph-btn {
+  background-color: var(--mimics-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.view-graph-btn:hover {
+  background-color: #0288D1;
+}
+
+/* Новая кнопка остановки генерации */
+.stop-button {
+  background-color: var(--mimics-error);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  padding-left: 14px;
+}
+
+.stop-button:hover {
+  background-color: #D32F2F;
+}
+
+.stop-button::before {
+  content: "■"; /* Символ остановки */
+  font-size: 14px;
+}
+
+/* Кнопка скачивания и запуска */
+.download-button {
+  background-color: var(--mimics-success);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.download-button:hover {
+  background-color: #2E7D32; /* Темнее версия --mimics-success */
+}
+
+/* Формы */
+.add-sensor-form {
+  background-color: white;
+  border-radius: var(--mimics-border-radius-md);
+  padding: 20px;
+  margin: 20px 0;
+  box-shadow: var(--mimics-shadow-medium);
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.add-sensor-form h2 {
+  color: var(--mimics-primary);
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.add-sensor-form input,
+.add-sensor-form select {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  border: 1px solid var(--mimics-gray);
+  border-radius: var(--mimics-border-radius-sm);
+  font-size: 14px;
+  transition: var(--mimics-transition);
+}
+
+.add-sensor-form input:focus,
+.add-sensor-form select:focus {
+  outline: none;
+  border-color: var(--mimics-primary);
+  box-shadow: 0 0 0 3px rgba(126, 87, 194, 0.2);
+}
+
+/* Индикатор статуса генерации */
+.generation-status {
+  background-color: #F5F5F5;
+  border-radius: var(--mimics-border-radius-md);
+  padding: 14px 20px;
+  margin: 16px 0;
+  display: flex;
+  align-items: center;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+  font-size: 15px;
+}
+
+.status-indicator .status-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.status-indicator.active .status-dot {
+  background-color: var(--mimics-success);
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+  animation: pulse 2s infinite;
+}
+
+.status-indicator.inactive .status-dot {
+  background-color: var(--mimics-gray);
+}
+
+.status-indicator.active {
+  color: var(--mimics-success);
+}
+
+.status-indicator.inactive {
+  color: var(--mimics-dark-gray);
+}
+
+/* Сообщение о статусе */
+.status-message {
+  padding: 12px 16px;
+  margin: 16px 0;
+  border-radius: var(--mimics-border-radius-md);
+  font-weight: 500;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.status-message.success {
+  background-color: #E8F5E9;
+  color: #2E7D32;
+  border-left: 4px solid var(--mimics-success);
+}
+
+.status-message.warning {
+  background-color: #FFEBEE;
+  color: #C62828;
+  border-left: 4px solid var(--mimics-error);
+}
+
+/* Список датчиков */
+.sensor-list {
+  margin-top: 30px;
+}
+
+.sensor-list h2 {
+  color: var(--mimics-primary);
+  margin-bottom: 20px;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.sensor-item {
+  background-color: white;
+  border-radius: var(--mimics-border-radius-md);
+  margin-bottom: 12px;
+  overflow: hidden;
+  box-shadow: var(--mimics-shadow-light);
+  transition: var(--mimics-transition);
+}
+
+.sensor-item:hover {
+  box-shadow: var(--mimics-shadow-medium);
+}
+
+.sensor-header {
+  padding: 15px 20px;
+  background-color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: var(--mimics-transition);
+  border-bottom: 1px solid transparent;
+  font-weight: 500;
+}
+
+.sensor-header:hover {
+  background-color: #F5F5F5;
+}
+
+.sensor-header.expanded {
+  border-bottom: 1px solid var(--mimics-gray);
+}
+
+.sensor-details {
+  padding: 16px 20px;
+  background-color: #FAFAFA;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.sensor-details p {
+  margin: 8px 0;
+  color: var(--mimics-dark-gray);
+}
+
+.sensor-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+/* Настройка сценариев */
+.scenario-settings {
+  background-color: white;
+  border-radius: var(--mimics-border-radius-md);
+  padding: 24px;
+  box-shadow: var(--mimics-shadow-medium);
+  max-width: 800px;
+  margin: 20px auto;
+}
+
+.scenario-settings h2 {
+  color: var(--mimics-primary);
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+.scenario-content {
+  margin: 24px 0;
+}
+
+.buttons-container {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.primitive-item {
+  background-color: white;
+  border-radius: var(--mimics-border-radius-sm);
+  padding: 12px 16px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--mimics-shadow-light);
+}
+
+.empty-list {
+  padding: 30px 20px;
+  text-align: center;
+  background-color: #F5F5F5;
+  border-radius: var(--mimics-border-radius-md);
+  color: var(--mimics-dark-gray);
+  margin-top: 16px;
+}
+
+/* Анимации */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
   }
-
-button {
-
-    padding: 8px 15px;
-    background-color: #c4c4c4;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-    button:hover {
-        background-color: #947fed;
-    }
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(76, 175, 80, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+  }
+}
 
-.button-container {
-    display: flex;
-    justify-content: flex-end;
+/* Контроль панель */
+.control-panel {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 30px;
+  gap: 12px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .sensor-manager {
+    padding: 15px;
+  }
+  
+  .buttons-container {
+    flex-direction: column;
+  }
+  
+  .toolbar {
+    flex-direction: column;
+  }
 }
