@@ -11,14 +11,16 @@
 /* Шапка приложения */
 .mimics-header {
   background-color: var(--mimics-primary);
-  color: white;
+  color: var(--mimics-white);
   padding: 16px 24px;
-  margin-bottom: 30px;
-  border-radius: var(--mimics-border-radius-md);
-  box-shadow: var(--mimics-shadow-medium);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  box-shadow: var(--mimics-shadow-medium);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-radius: 0 0 var(--mimics-border-radius-md) var(--mimics-border-radius-md);
 }
 
 .mimics-title {
@@ -427,4 +429,83 @@ button.danger:hover {
   .toolbar {
     flex-direction: column;
   }
+}
+
+
+/* Стили для кнопки скачивания */
+.download-button {
+  background-color: var(--mimics-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  padding-left: 14px;
+}
+
+.download-button:hover {
+  background-color: var(--mimics-primary-dark);
+}
+
+.download-button::before {
+  content: "↓"; /* Символ скачивания */
+  font-size: 14px;
+}
+
+/* Стили для кнопки запуска генерации */
+.start-button {
+  background-color: var(--mimics-success);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  padding-left: 14px;
+}
+
+.start-button:hover {
+  background-color: #2E7D32; /* Темнее версия --mimics-success */
+}
+
+.start-button::before {
+  content: "▶"; /* Символ запуска */
+  font-size: 14px;
+}
+
+/* Стиль активной кнопки графика */
+.view-graph-btn.active {
+  background-color: #0277BD; /* Более темный синий */
+  position: relative;
+}
+
+.view-graph-btn.active::before {
+  content: "✓"; /* Галочка перед текстом */
+  font-size: 14px;
+  margin-right: 5px;
+}
+
+.view-graph-btn.active:hover {
+  background-color: #01579B; /* Еще более темный при наведении */
+}
+
+/* Стиль для отображения количества эпизодов в заголовке датчика */
+.primitives-count {
+  background-color: var(--mimics-primary-light);
+  color: white;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-right: 10px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+/* Стиль активной кнопки настройки примитивов */
+.mimics-button.primary.active {
+  background-color: var(--mimics-primary-dark);
+  position: relative;
+}
+
+.mimics-button.primary.active::before {
+  content: "✓";
+  font-size: 14px;
+  margin-right: 5px;
 }

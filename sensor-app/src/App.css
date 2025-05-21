@@ -33,6 +33,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 100;
+  border-radius: 0 0 var(--mimics-border-radius-md) var(--mimics-border-radius-md);
 }
 
 .mimics-logo {

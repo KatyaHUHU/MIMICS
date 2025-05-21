@@ -3,15 +3,16 @@ import React, { useEffect, useState } from 'react';
 import './SensorManager.css';
 import PrimitiveManager from './PrimitiveManager';
 import DownloadScenarioButton from './DownloadScenarioButton';
+import StartGenerationButton from './StartGenerationButton';
 import GraphWindow from './GraphWindow';
 import api from './api';
 
 const SensorManager = () => {
-  // Состояния датчиков
+  // Состояния датчиков - теперь с массивом примитивов для каждого датчика
   const [sensors, setSensors] = useState([
-    { id: 1, name: 'Датчик температуры', type: 'temperature', expanded: false },
-    { id: 2, name: 'Датчик движения', type: 'motion', expanded: false },
-    { id: 3, name: 'Датчик освещения', type: 'light', expanded: false },
+    { id: 1, name: 'Датчик температуры', type: 'temperature', expanded: false, primitives: [] },
+    { id: 2, name: 'Датчик движения', type: 'motion', expanded: false, primitives: [] },
+    { id: 3, name: 'Датчик освещения', type: 'light', expanded: false, primitives: [] },
   ]);
   const [newSensor, setNewSensor] = useState({ name: '', type: '' });
   const [showAddForm, setShowAddForm] = useState(false);
@@ -19,7 +20,9 @@ const SensorManager = () => {
   // Состояния для сценариев
   const [selectedSensor, setSelectedSensor] = useState(null);
   const [showPrimitiveManager, setShowPrimitiveManager] = useState(false);
-  const [primitives, setPrimitives] = useState([]);
+  
+  // Выбранные примитивы для текущего датчика
+  const [currentPrimitives, setCurrentPrimitives] = useState([]);
   
   // Состояние для отображения графика
   const [showGraph, setShowGraph] = useState(false);
@@ -28,9 +31,18 @@ const SensorManager = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
 
+  // Эффект при выборе датчика - загружаем его примитивы
+  useEffect(() => {
+    if (selectedSensor) {
+      const sensor = sensors.find(s => s.id === selectedSensor.id);
+      if (sensor) {
+        setCurrentPrimitives(sensor.primitives || []);
+      }
+    }
+  }, [selectedSensor, sensors]);
+
   // Загрузка примитивов при первом рендере
   useEffect(() => {
-    fetchPrimitives();
     // Проверим текущий статус генерации при загрузке
     checkGenerationStatus();
   }, []);
@@ -46,23 +58,34 @@ const SensorManager = () => {
   };
 
   // --- СЕТЬ: Примитивы на FastAPI (порт 8000 проксируется CRA) ---
-  const fetchPrimitives = async () => {
-    try {
-      const { data } = await api.get('/primitives');
-      setPrimitives(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error('Не удалось загрузить примитивы:', err);
-      setPrimitives([]);
-    }
-  };
-
   const deletePrimitive = async (index) => {
-    try {
-      const { data } = await api.delete(`/primitives/${index}`);
-      setPrimitives(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error('Ошибка при удалении примитива:', err);
-    }
+    // Удаляем примитив из локального состояния выбранного датчика
+    const updatedPrimitives = [...currentPrimitives];
+    updatedPrimitives.splice(index, 1);
+    setCurrentPrimitives(updatedPrimitives);
+    
+    // Обновляем массив датчиков с новыми примитивами
+    setSensors(prevSensors => 
+      prevSensors.map(sensor => 
+        sensor.id === selectedSensor.id 
+          ? { ...sensor, primitives: updatedPrimitives } 
+          : sensor
+      )
+    );
+  };
+  
+  // Обновляем примитивы для текущего датчика
+  const updatePrimitives = (newPrimitives) => {
+    setCurrentPrimitives(newPrimitives);
+    
+    // Обновляем массив датчиков
+    setSensors(prevSensors => 
+      prevSensors.map(sensor => 
+        sensor.id === selectedSensor.id 
+          ? { ...sensor, primitives: newPrimitives } 
+          : sensor
+      )
+    );
   };
   
   // Функция для остановки генерации
@@ -84,8 +107,8 @@ const SensorManager = () => {
     }
   };
   
-  // Функция для запуска генерации (через DownloadScenarioButton)
-  const startGeneration = () => {
+  // Функция для обновления UI после запуска генерации
+  const onGenerationStarted = () => {
     setIsGenerating(true);
     setStatusMessage('Генерация запущена');
     
@@ -93,6 +116,16 @@ const SensorManager = () => {
     setTimeout(() => {
       setStatusMessage('');
     }, 3000);
+  };
+  
+  // Функция переключения отображения графика
+  const toggleGraphVisibility = () => {
+    setShowGraph(prev => !prev);
+  };
+  
+  // Функция переключения отображения менеджера примитивов
+  const togglePrimitiveManager = () => {
+    setShowPrimitiveManager(prev => !prev);
   };
   // ---------------------------------------------------------------
 
@@ -104,6 +137,7 @@ const SensorManager = () => {
       name: newSensor.name,
       type: newSensor.type,
       expanded: false,
+      primitives: [], // Инициализируем пустым массивом примитивов
     };
     setSensors(prev => [...prev, sensor]);
     setNewSensor({ name: '', type: '' });
@@ -129,10 +163,15 @@ const SensorManager = () => {
 
   const backToMainMenu = () => {
     setSelectedSensor(null);
+    setCurrentPrimitives([]);
   };
 
-  const handleShowPrimitiveManager = () => {
-    setShowPrimitiveManager(true);
+  // Создаем объект сценария для передачи в кнопки
+  const createScenarioObject = () => {
+    return {
+      name: `Сценарий: ${selectedSensor ? selectedSensor.name : 'Новый датчик'}`,
+      episodes: currentPrimitives,
+    };
   };
 
   // --- Рендер экрана настройки сценариев ---
@@ -157,23 +196,23 @@ const SensorManager = () => {
 
         <div className="scenario-content">
           <button 
-            className="mimics-button primary"
-            onClick={handleShowPrimitiveManager}
+            className={`mimics-button primary ${showPrimitiveManager ? 'active' : ''}`}
+            onClick={togglePrimitiveManager}
           >
-            Настройка эпизодов
+            {showPrimitiveManager ? 'Скрыть настройки' : 'Настройка эпизодов'}
           </button>
           
           {showPrimitiveManager && (
             <PrimitiveManager
-              primitives={primitives}
-              setPrimitives={setPrimitives}
+              primitives={currentPrimitives}
+              setPrimitives={updatePrimitives}
             />
           )}
 
-          {primitives.length > 0 && (
+          {currentPrimitives.length > 0 && (
             <div className="primitives-list">
               <h3>Эпизоды сценария</h3>
-              {primitives.map((prim, idx) => (
+              {currentPrimitives.map((prim, idx) => (
                 <div key={idx} className="primitive-item">
                   <div>
                     <strong>
@@ -196,17 +235,15 @@ const SensorManager = () => {
           )}
 
           <div className="buttons-container">
-            {/* Кнопка «Скачать JSON и запустить генератор» */}
-            <DownloadScenarioButton
-              scenario={{
-                name: `Сценарий: ${selectedSensor.name}`,
-                episodes: primitives,
-              }}
-              onSuccess={startGeneration}
-            />
+            {/* Раздельные кнопки для загрузки JSON и запуска генерации */}
+            <DownloadScenarioButton scenario={createScenarioObject()} />
             
-            {/* Кнопка остановки генерации */}
-            {isGenerating && (
+            {!isGenerating ? (
+              <StartGenerationButton 
+                scenario={createScenarioObject()} 
+                onSuccess={onGenerationStarted}
+              />
+            ) : (
               <button 
                 onClick={stopGeneration}
                 className="stop-button"
@@ -215,12 +252,12 @@ const SensorManager = () => {
               </button>
             )}
             
-            {/* Кнопка просмотра графика */}
+            {/* Кнопка просмотра графика с переключением */}
             <button 
-              onClick={() => setShowGraph(true)}
-              className="view-graph-btn"
+              onClick={toggleGraphVisibility}
+              className={`view-graph-btn ${showGraph ? 'active' : ''}`}
             >
-              Просмотр графика данных
+              {showGraph ? 'Скрыть график' : 'Показать график'}
             </button>
           </div>
         </div>
@@ -231,7 +268,7 @@ const SensorManager = () => {
         
         {/* Окно с графиком (отображается поверх текущего экрана) */}
         {showGraph && (
-          <GraphWindow onClose={() => setShowGraph(false)} />
+          <GraphWindow onClose={toggleGraphVisibility} />
         )}
       </div>
     );
@@ -256,12 +293,20 @@ const SensorManager = () => {
                   onClick={() => toggleExpand(sensor.id)}
                 >
                   <span>{sensor.name}</span>
-                  <span>{sensor.expanded ? '▲' : '▼'}</span>
+                  <span>
+                    {sensor.primitives && sensor.primitives.length > 0 && 
+                      <span className="primitives-count">{sensor.primitives.length} эпизодов</span>
+                    }
+                    {sensor.expanded ? '▲' : '▼'}
+                  </span>
                 </div>
                 {sensor.expanded && (
                   <div className="sensor-details">
                     <p>Тип: {sensor.type}</p>
                     <p>ID: {sensor.id}</p>
+                    {sensor.primitives && sensor.primitives.length > 0 && (
+                      <p>Настроено примитивов: {sensor.primitives.length}</p>
+                    )}
                     <div className="sensor-actions">
                       <button 
                         onClick={() => goToScenarioSettings(sensor)}
@@ -318,16 +363,16 @@ const SensorManager = () => {
       
       <div className="control-panel">
         <button 
-          onClick={() => setShowGraph(true)}
-          className="view-graph-btn"
+          onClick={toggleGraphVisibility}
+          className={`view-graph-btn ${showGraph ? 'active' : ''}`}
         >
-          Просмотр графика данных
+          {showGraph ? 'Скрыть график' : 'Показать график'}
         </button>
       </div>
       
       {/* Окно с графиком (отображается поверх текущего экрана) */}
       {showGraph && (
-        <GraphWindow onClose={() => setShowGraph(false)} />
+        <GraphWindow onClose={toggleGraphVisibility} />
       )}
     </div>
   );
