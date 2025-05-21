@@ -1,7 +1,6 @@
 ﻿// sensor-app/src/PrimitiveManager.js
 
-import React, { useState, useEffect } from 'react';
-import api from './api';
+import React, { useState } from 'react';
 import './PrimitiveManager.css';
 
 const PrimitiveManager = ({ primitives, setPrimitives }) => {
