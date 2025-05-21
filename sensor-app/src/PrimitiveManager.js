@@ -1,9 +1,9 @@
 ﻿// sensor-app/src/PrimitiveManager.js
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { addSensorPrimitive, deleteSensorPrimitive } from './api';
 import './PrimitiveManager.css';
 
-const PrimitiveManager = ({ primitives, setPrimitives }) => {
+const PrimitiveManager = ({ sensorId, primitives, setPrimitives }) => {
   // Состояния для примитивов
   const [constantValue, setConstantValue] = useState('25.0');
   const [formulaExpression, setFormulaExpression] = useState('A * math.sin(2 * math.pi * t / period) + B');
@@ -18,6 +18,7 @@ const PrimitiveManager = ({ primitives, setPrimitives }) => {
   // Состояние для сообщений об ошибках/успехе
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState(''); // 'success' или 'error'
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Функция для отображения сообщений
   const showMessage = (text, type = 'success') => {
@@ -46,7 +47,7 @@ const PrimitiveManager = ({ primitives, setPrimitives }) => {
     return true;
   };
 
-  // Функция для добавления примитива
+  // Функция для добавления примитива (с отправкой на сервер)
   const addPrimitive = async (primitiveType) => {
     // Валидация общих параметров
     if (!validateCommonParams()) {
@@ -120,19 +121,47 @@ const PrimitiveManager = ({ primitives, setPrimitives }) => {
       return;
     }
 
-    // ИЗМЕНЕНИЕ: Добавляем примитив локально, не вызывая API
-    const updatedPrimitives = [...primitives, newPrimitive];
-    setPrimitives(updatedPrimitives);
-    showMessage(`Примитив типа "${primitiveType}" успешно добавлен`, 'success');
+    // Отправка примитива на сервер
+    setIsSubmitting(true);
+    try {
+      const { data } = await addSensorPrimitive(sensorId, newPrimitive);
+      
+      // После успешного создания, добавляем примитив в список
+      setPrimitives([...primitives, data]);
+      showMessage(`Примитив типа "${primitiveType}" успешно добавлен`, 'success');
+    } catch (err) {
+      console.error('Не удалось добавить примитив:', err);
+      showMessage(`Ошибка при добавлении примитива: ${err.response?.data?.detail || err.message}`, 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Функция для удаления примитива
-  const deletePrimitive = (index) => {
-    // ИЗМЕНЕНИЕ: Удаляем примитив локально, не вызывая API
-    const updatedPrimitives = [...primitives];
-    updatedPrimitives.splice(index, 1);
-    setPrimitives(updatedPrimitives);
-    showMessage('Примитив успешно удален', 'success');
+  const deletePrimitive = async (index) => {
+    const primitiveToDelete = primitives[index];
+    
+    if (!primitiveToDelete || !primitiveToDelete.id) {
+      // Если у примитива нет ID, значит он ещё не сохранен на сервере
+      // Просто удаляем его из локального состояния
+      const updatedPrimitives = [...primitives];
+      updatedPrimitives.splice(index, 1);
+      setPrimitives(updatedPrimitives);
+      showMessage('Примитив успешно удален', 'success');
+      return;
+    }
+    
+    try {
+      await deleteSensorPrimitive(primitiveToDelete.id);
+      
+      // После успешного удаления, обновляем список
+      const updatedPrimitives = primitives.filter((_, i) => i !== index);
+      setPrimitives(updatedPrimitives);
+      showMessage('Примитив успешно удален', 'success');
+    } catch (err) {
+      console.error('Ошибка при удалении примитива:', err);
+      showMessage(`Не удалось удалить примитив: ${err.response?.data?.detail || err.message}`, 'error');
+    }
   };
 
   // Функция для форматирования JSON
@@ -220,8 +249,11 @@ const PrimitiveManager = ({ primitives, setPrimitives }) => {
             onChange={e => setConstantValue(e.target.value)}
             step="0.1"
           />
-          <button onClick={() => addPrimitive('constant')}>
-            Добавить константу
+          <button 
+            onClick={() => addPrimitive('constant')}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Добавление...' : 'Добавить константу'}
           </button>
         </div>
       </div>
@@ -243,8 +275,11 @@ const PrimitiveManager = ({ primitives, setPrimitives }) => {
             value={formulaVariables}
             onChange={e => setFormulaVariables(e.target.value)}
           />
-          <button onClick={() => addPrimitive('formula')}>
-            Добавить формулу
+          <button 
+            onClick={() => addPrimitive('formula')}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Добавление...' : 'Добавить формулу'}
           </button>
         </div>
         <div className="help-text">
@@ -272,8 +307,11 @@ const PrimitiveManager = ({ primitives, setPrimitives }) => {
             step="0.1"
             min="0"
           />
-          <button onClick={() => addPrimitive('noise')}>
-            Добавить шум
+          <button 
+            onClick={() => addPrimitive('noise')}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Добавление...' : 'Добавить шум'}
           </button>
         </div>
       </div>
@@ -287,7 +325,7 @@ const PrimitiveManager = ({ primitives, setPrimitives }) => {
       ) : (
         <ul className="primitives-list">
           {primitives.map((primitive, index) => (
-            <li key={index} className="primitive-item">
+            <li key={primitive.id || index} className="primitive-item">
               <div className="primitive-info">
                 <div className="primitive-header">
                   <strong>{getPrimitiveTypeName(primitive.primitive_type)}</strong>

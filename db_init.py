@@ -5,9 +5,10 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent))
 
 from db.config import engine
-from db.models import Base
+from db.models import Base, ScenarioDB, EpisodeDB, SensorDB, PrimitiveDB
 
 def init_db():
+    # Создание всех таблиц в базе данных
     Base.metadata.create_all(bind=engine)
     print("Database tables created successfully")
 

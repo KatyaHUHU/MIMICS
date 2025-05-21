@@ -3,6 +3,7 @@ from pathlib import Path
 import logging
 import json
 import asyncio
+from api.sensors import router as sensors_router
 from fastapi import FastAPI, HTTPException, WebSocket, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -16,7 +17,7 @@ if str(project_root) not in sys.path:
 # Импорты из проекта
 from core.mqtt_client import MQTTPublisher
 from core.data_generator import DataGenerator
-from schemas import ScenarioSchema, StartRequest
+from .schemas import ScenarioSchema, StartRequest
 
 # Настройка логирования
 logging.basicConfig(
@@ -44,6 +45,8 @@ from api.ws_handler import router as ws_router
 
 # Регистрируем маршруты WebSocket
 app.include_router(ws_router)
+
+app.include_router(sensors_router)
 
 # Примитивы (эпизоды) — временное хранилище
 primitives_data = []
