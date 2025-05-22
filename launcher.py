@@ -135,7 +135,7 @@ class MimicsLauncher:
             venv_path = self.root_dir / 'venv'
             if not venv_path.exists():
                 subprocess.run([sys.executable, '-m', 'venv', 'venv'], 
-                             cwd=self.root_dir, check=True)
+                            cwd=self.root_dir, check=True)
             
             # Пути для Windows
             pip_path = venv_path / 'Scripts' / 'pip.exe'
@@ -143,12 +143,32 @@ class MimicsLauncher:
             
             print(f"{Colors.CYAN}📋 Установка Python зависимостей...{Colors.END}")
             subprocess.run([str(pip_path), 'install', '-r', 'requirements.txt'], 
-                         cwd=self.root_dir, check=True)
+                        cwd=self.root_dir, check=True)
             
-            # Node.js зависимости
+            # Node.js зависимости - ИСПРАВЛЕННАЯ ЧАСТЬ
             print(f"{Colors.CYAN}📦 Установка Node.js зависимостей...{Colors.END}")
             sensor_app_path = self.root_dir / 'sensor-app'
-            subprocess.run(['npm', 'install'], cwd=sensor_app_path, check=True)
+            
+            # Проверяем существование папки
+            if not sensor_app_path.exists():
+                raise FileNotFoundError(f"Папка {sensor_app_path} не найдена")
+            
+            # Используем npm.cmd для Windows и shell=True
+            try:
+                # Попробуем сначала npm.cmd
+                subprocess.run(['npm.cmd', 'install'], 
+                            cwd=sensor_app_path, 
+                            check=True, 
+                            shell=True,
+                            timeout=300)  # 5 минут таймаут
+            except (subprocess.CalledProcessError, FileNotFoundError):
+                # Если npm.cmd не работает, попробуем npm с shell=True
+                print(f"{Colors.YELLOW}⚠️ npm.cmd не найден, пробуем npm...{Colors.END}")
+                subprocess.run(['npm', 'install'], 
+                            cwd=sensor_app_path, 
+                            check=True, 
+                            shell=True,
+                            timeout=300)
             
             # Запуск базы данных
             print(f"{Colors.CYAN}🗄️ Запуск базы данных PostgreSQL...{Colors.END}")
@@ -161,16 +181,26 @@ class MimicsLauncher:
             # Инициализация БД
             print(f"{Colors.CYAN}🔧 Инициализация таблиц базы данных...{Colors.END}")
             subprocess.run([str(python_path), 'db_init.py'], 
-                         cwd=self.root_dir, check=True)
+                        cwd=self.root_dir, check=True)
             
             print(f"{Colors.GREEN}✅ Установка успешно завершена!{Colors.END}")
             return True
             
+        except subprocess.TimeoutExpired:
+            print(f"{Colors.RED}❌ Превышено время ожидания установки Node.js зависимостей{Colors.END}")
+            print(f"{Colors.YELLOW}💡 Попробуйте запустить 'npm install' вручную в папке sensor-app{Colors.END}")
+            return False
+        except FileNotFoundError as e:
+            print(f"{Colors.RED}❌ Файл не найден: {e}{Colors.END}")
+            print(f"{Colors.YELLOW}💡 Убедитесь, что Node.js установлен и добавлен в PATH{Colors.END}")
+            return False
         except subprocess.CalledProcessError as e:
             print(f"{Colors.RED}❌ Ошибка установки: {e}{Colors.END}")
+            print(f"{Colors.YELLOW}💡 Детали ошибки: {e.stderr if hasattr(e, 'stderr') else 'Нет подробностей'}{Colors.END}")
             return False
         except Exception as e:
             print(f"{Colors.RED}❌ Неожиданная ошибка: {e}{Colors.END}")
+            print(f"{Colors.YELLOW}💡 Попробуйте запустить с правами администратора{Colors.END}")
             return False
     
     def start_application(self):
