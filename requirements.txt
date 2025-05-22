@@ -1,9 +1,24 @@
-fastapi==0.95.2
-uvicorn==0.22.0
-sqlalchemy==2.0.15
-psycopg2-binary
-python-dotenv==1.0.0
-alembic==1.11.1
-pydantic==1.10.7
-paho-mqtt
-websockets 
+# Web Framework
+fastapi>=0.104.0,<1.0.0
+uvicorn[standard]>=0.24.0,<1.0.0
+
+# Database
+sqlalchemy>=2.0.23,<3.0.0
+psycopg2-binary>=2.9.0
+alembic>=1.13.0,<2.0.0
+
+# Data Validation
+pydantic>=2.5.0,<3.0.0
+
+# Configuration
+python-dotenv>=1.0.0,<2.0.0
+
+# MQTT
+paho-mqtt>=1.6.0,<2.0.0
+
+# WebSocket
+websockets>=12.0,<13.0
+
+# Utilities 
+typing-extensions>=4.8.0
+setuptools>=65.0.0  
