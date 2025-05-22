@@ -1,40 +1,73 @@
+/* Импорт цветовой палитры */
+@import './colors.css';
+
 .primitive-manager {
-  background-color: #f5f5f5;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  background-color: white;
+  border-radius: var(--mimics-border-radius-md);
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--mimics-shadow-light);
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.primitive-manager h2 {
+  color: var(--mimics-primary);
+  margin-top: 0;
+  margin-bottom: 24px;
+  font-size: 22px;
+  position: relative;
+  display: inline-block;
+}
+
+.primitive-manager h2::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background-color: var(--mimics-primary-light);
+  border-radius: 3px;
 }
 
 .primitive-section {
-  margin-bottom: 20px;
-  padding: 15px;
-  background-color: #fff;
-  border-radius: 5px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  background-color: #F9F9F9;
+  border-radius: var(--mimics-border-radius-md);
+  padding: 20px;
+  margin-bottom: 24px;
+  border-left: 4px solid var(--mimics-primary-light);
+}
+
+.primitive-section h3 {
+  color: var(--mimics-primary);
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 18px;
+  font-weight: 600;
 }
 
 .primitives-list {
   list-style: none;
   padding: 0;
-  margin-top: 15px;
+  margin-top: 20px;
 }
 
 .primitive-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 15px;
-  margin-bottom: 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  background-color: #fff;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-  transition: all 0.2s ease;
+  padding: 16px;
+  margin-bottom: 12px;
+  border-radius: var(--mimics-border-radius-md);
+  background-color: white;
+  box-shadow: var(--mimics-shadow-light);
+  transition: var(--mimics-transition);
+  animation: fadeIn 0.3s ease-in-out;
 }
 
 .primitive-item:hover {
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: var(--mimics-shadow-medium);
+  transform: translateY(-2px);
 }
 
 .primitive-info {
@@ -45,126 +78,172 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
+}
+
+.primitive-header strong {
+  color: var(--mimics-primary);
+  font-size: 16px;
 }
 
 .primitive-config {
   font-size: 14px;
-  color: #555;
+  color: var(--mimics-dark-gray);
+  line-height: 1.5;
 }
 
 .duration-badge {
-  background-color: #e8e8e8;
-  border-radius: 12px;
-  padding: 3px 10px;
+  background-color: var(--mimics-gray);
+  color: var(--mimics-black);
+  border-radius: 50px;
+  padding: 4px 12px;
   font-size: 12px;
-  color: #333;
+  font-weight: 500;
 }
 
 .duration-badge.looped {
-  background-color: #d4edda;
-  color: #155724;
+  background-color: var(--mimics-primary-light);
+  color: white;
 }
 
 .common-settings {
-  background-color: #e9f7fe;
-  padding: 15px;
-  border-radius: 5px;
-  margin-bottom: 20px;
-  border-left: 4px solid #1e88e5;
+  background-color: #EDE7F6; /* Светло-фиолетовый фон */
+  padding: 20px;
+  border-radius: var(--mimics-border-radius-md);
+  margin-bottom: 24px;
+  border-left: 4px solid var(--mimics-primary);
+}
+
+.common-settings h3 {
+  color: var(--mimics-primary);
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.common-settings div {
+  margin-bottom: 12px;
 }
 
 .notification {
-  padding: 12px 15px;
-  margin-bottom: 15px;
-  border-radius: 5px;
+  padding: 16px;
+  margin-bottom: 20px;
+  border-radius: var(--mimics-border-radius-md);
   animation: fadeIn 0.3s ease-in-out;
 }
 
 .notification.success {
-  background-color: #d4edda;
-  color: #155724;
-  border-left: 4px solid #28a745;
+  background-color: #E8F5E9;
+  color: #2E7D32;
+  border-left: 4px solid var(--mimics-success);
 }
 
 .notification.error {
-  background-color: #f8d7da;
-  color: #721c24;
-  border-left: 4px solid #dc3545;
+  background-color: #FFEBEE;
+  color: #C62828;
+  border-left: 4px solid var(--mimics-error);
 }
 
 .help-text {
   font-size: 12px;
-  color: #6c757d;
-  margin-top: 5px;
-  margin-left: 5px;
+  color: var(--mimics-dark-gray);
+  margin-top: 6px;
+  margin-left: 8px;
+  font-style: italic;
 }
 
 .empty-list {
-  padding: 15px;
+  padding: 30px 20px;
   text-align: center;
-  background-color: #f9f9f9;
-  border-radius: 5px;
-  border: 1px dashed #ccc;
-  color: #6c757d;
+  background-color: #F5F5F5;
+  border-radius: var(--mimics-border-radius-md);
+  border: 1px dashed #BDBDBD;
+  color: var(--mimics-dark-gray);
+  font-size: 15px;
+  margin-top: 20px;
 }
 
 .warning-message {
-  margin-top: 15px;
-  padding: 10px 15px;
-  background-color: #fff3cd;
-  color: #856404;
-  border-radius: 5px;
-  border-left: 4px solid #ffc107;
+  margin-top: 20px;
+  padding: 16px;
+  background-color: #FFF8E1;
+  color: #F57F17;
+  border-radius: var(--mimics-border-radius-md);
+  border-left: 4px solid var(--mimics-warning);
+  font-size: 14px;
 }
 
 .delete-button {
-  background-color: #f44336;
+  background-color: var(--mimics-error);
   color: white;
   border: none;
-  border-radius: 4px;
-  padding: 6px 12px;
+  border-radius: var(--mimics-border-radius-sm);
+  padding: 8px 14px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: var(--mimics-transition);
+  font-weight: 500;
+  box-shadow: var(--mimics-shadow-light);
 }
 
 .delete-button:hover {
-  background-color: #d32f2f;
+  background-color: #D32F2F;
+  box-shadow: var(--mimics-shadow-medium);
+}
+
+.delete-button:active {
+  transform: translateY(1px);
 }
 
 .primitive-manager input[type="text"],
 .primitive-manager input[type="number"] {
-  padding: 8px 10px;
+  padding: 10px 12px;
   margin: 5px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  border: 1px solid var(--mimics-gray);
+  border-radius: var(--mimics-border-radius-sm);
   width: 100%;
   max-width: 300px;
-  transition: border-color 0.2s;
+  transition: var(--mimics-transition);
+  font-size: 14px;
 }
 
 .primitive-manager input[type="text"]:focus,
 .primitive-manager input[type="number"]:focus {
-  border-color: #1e88e5;
   outline: none;
-  box-shadow: 0 0 0 2px rgba(30, 136, 229, 0.25);
+  border-color: var(--mimics-primary);
+  box-shadow: 0 0 0 3px rgba(126, 87, 194, 0.2);
+}
+
+.primitive-manager label {
+  display: inline-block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: var(--mimics-black);
 }
 
 .primitive-manager button {
   margin: 5px;
-  padding: 8px 15px;
-  background-color: #1e88e5;
+  padding: 10px 16px;
+  background-color: var(--mimics-primary);
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--mimics-border-radius-sm);
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: var(--mimics-transition);
+  font-weight: 500;
+  box-shadow: var(--mimics-shadow-light);
 }
 
 .primitive-manager button:hover {
-  background-color: #1976d2;
+  background-color: var(--mimics-primary-dark);
+  box-shadow: var(--mimics-shadow-medium);
 }
 
+.primitive-manager button:active {
+  transform: translateY(1px);
+}
+
+/* Анимации */
 @keyframes fadeIn {
   from {
     opacity: 0;

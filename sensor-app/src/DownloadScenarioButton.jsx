@@ -2,16 +2,20 @@ import React from "react";
 import api from './api';
 import { saveAs } from "file-saver";
 
+// Компонент для скачивания JSON без запуска генерации
 export default function DownloadScenarioButton({ scenario }) {
   const handleClick = async () => {
     try {
-      // Отправляем сценарий на бекенд: получаем файл + старт генерации
-      const res = await api.post('/scenario/download', scenario, { responseType: 'blob' });
-
-      // Сохраняем файл локально
-      saveAs(new Blob([res.data], { type: "application/json" }), "scenario.json");
+      // Преобразуем сценарий в JSON
+      const jsonContent = JSON.stringify(scenario, null, 2);
+      
+      // Создаем и скачиваем файл
+      const blob = new Blob([jsonContent], { type: "application/json" });
+      saveAs(blob, "scenario.json");
+      
+      console.log("JSON успешно скачан");
     } catch (err) {
-      console.error("Download error:", err);
+      console.error("Ошибка скачивания:", err);
       alert("Не удалось скачать сценарий — см. консоль.");
     }
   };
@@ -19,9 +23,9 @@ export default function DownloadScenarioButton({ scenario }) {
   return (
     <button
       onClick={handleClick}
-      className="rounded-2xl bg-blue-600 hover:bg-blue-700 px-6 py-3 text-white shadow-lg transition-all duration-300 ease-in-out"
+      className="download-button"
     >
-      Скачать JSON и запустить
+      Загрузить JSON
     </button>
   );
 }

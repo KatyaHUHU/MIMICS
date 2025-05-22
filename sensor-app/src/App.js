@@ -1,18 +1,19 @@
 // src/App.js
 import React from "react";
 import SensorManager from "./SensorManager";
+import "./App.css";
 
 function App() {
   return (
-    <div style={{
-      minHeight: "100vh",
-      display: "flex",
-      alignItems: "flex-start",
-      justifyContent: "center",
-      padding: "20px",
-      backgroundColor: "#f3f4f6"
-    }}>
-      <SensorManager />
+    <div className="App">
+      {/* Шапка приложения в стиле MIMICS - без лишних кнопок */}
+      <header className="mimics-header">
+        <div className="mimics-logo">MIMICS</div>
+      </header>
+
+      <div className="mimics-container">
+        <SensorManager />
+      </div>
     </div>
   );
 }
