@@ -5,11 +5,13 @@ import PrimitiveManager from "./PrimitiveManager";
 import DownloadScenarioButton from "./DownloadScenarioButton";
 import StartGenerationButton from "./StartGenerationButton";
 import GraphWindow from "./GraphWindow";
-import api, {
+import {
   getSensors,
   createSensor,
   deleteSensor,
   getSensorPrimitives,
+  getStatus,
+  stopGeneration
 } from "./api";
 
 /**
@@ -137,10 +139,10 @@ const SensorManager = () => {
     setTimeout(() => setStatusMessage(""), 3000);
   };
 
-  // Функция для проверки статуса генерации
+  // Функция для проверки статуса генерации - ИСПРАВЛЕНО
   const checkGenerationStatus = async () => {
     try {
-      const { data } = await api.get("/status");
+      const { data } = await getStatus();
       setIsGenerating(data.is_running);
     } catch (err) {
       console.error("Не удалось получить статус генерации:", err);
@@ -161,10 +163,10 @@ const SensorManager = () => {
     );
   };
 
-  // Функция для остановки генерации
-  const stopGeneration = async () => {
+  // Функция для остановки генерации - ИСПРАВЛЕНО
+  const handleStopGeneration = async () => {
     try {
-      const { data } = await api.post("/stop");
+      const { data } = await stopGeneration();
       setIsGenerating(false);
       showTempMessage("Генерация остановлена");
       console.log("Генерация остановлена:", data);
@@ -346,7 +348,7 @@ const SensorManager = () => {
                 onSuccess={onGenerationStarted}
               />
             ) : (
-              <button onClick={stopGeneration} className="stop-button">
+              <button onClick={handleStopGeneration} className="stop-button">
                 Остановить генерацию
               </button>
             )}
