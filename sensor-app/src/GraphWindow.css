@@ -1,6 +1,268 @@
 /* Импорт цветовой палитры */
 @import './colors.css';
 
+/* Overlay для отображения графика поверх основного контента */
+.graph-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.graph-window {
+  background-color: white;
+  border-radius: var(--mimics-border-radius-lg);
+  box-shadow: var(--mimics-shadow-hard);
+  width: 90%;
+  max-width: 1200px;
+  height: 80%;
+  max-height: 800px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideIn 0.3s ease-out;
+}
+
+.graph-header {
+  background-color: var(--mimics-primary);
+  color: white;
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--mimics-shadow-light);
+}
+
+.graph-header h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 28px;
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.3s ease;
+  position: relative;
+  padding: 0;
+}
+
+.close-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.close-btn::before {
+  content: '×';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.graph-content {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+  background-color: var(--mimics-light-gray);
+}
+
+/* Статус подключения */
+.connection-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: white;
+  padding: 12px 16px;
+  border-radius: var(--mimics-border-radius-md);
+  margin-bottom: 20px;
+  box-shadow: var(--mimics-shadow-light);
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 8px;
+  transition: background-color 0.3s ease;
+}
+
+.status-indicator.connected .status-dot {
+  background-color: var(--mimics-success);
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+  animation: pulse 2s infinite;
+}
+
+.status-indicator.disconnected .status-dot {
+  background-color: var(--mimics-error);
+}
+
+.last-update {
+  font-size: 14px;
+  color: var(--mimics-dark-gray);
+}
+
+.reconnecting {
+  font-size: 14px;
+  color: var(--mimics-warning);
+  font-style: italic;
+}
+
+/* Контейнер графика */
+.chart-container {
+  background-color: white;
+  border-radius: var(--mimics-border-radius-md);
+  padding: 20px;
+  box-shadow: var(--mimics-shadow-light);
+  min-height: 450px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Нет данных */
+.no-data {
+  text-align: center;
+  color: var(--mimics-dark-gray);
+}
+
+.no-data-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.no-data-text {
+  font-size: 18px;
+  font-weight: 500;
+}
+
+/* Информация о данных */
+.data-info {
+  display: flex;
+  justify-content: space-around;
+  background-color: white;
+  padding: 16px;
+  border-radius: var(--mimics-border-radius-md);
+  margin-top: 20px;
+  box-shadow: var(--mimics-shadow-light);
+}
+
+.data-info > div {
+  text-align: center;
+}
+
+.data-info-value {
+  font-weight: 600;
+  color: var(--mimics-primary);
+  margin-left: 8px;
+}
+
+/* Действия */
+.data-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.data-actions button {
+  padding: 10px 20px;
+  background-color: var(--mimics-primary);
+  color: white;
+  border: none;
+  border-radius: var(--mimics-border-radius-sm);
+  cursor: pointer;
+  font-weight: 500;
+  transition: var(--mimics-transition);
+}
+
+.data-actions button:hover {
+  background-color: var(--mimics-primary-dark);
+}
+
+/* Анимации */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(76, 175, 80, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+  }
+}
+
+/* Стили для графика recharts */
+.recharts-wrapper {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.recharts-surface {
+  width: 100%;
+  height: 100%;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .graph-window {
+    width: 95%;
+    height: 90%;
+  }
+  
+  .graph-content {
+    padding: 16px;
+  }
+  
+  .data-info {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+/* Остальные стили из оригинального файла */
 .primitive-manager {
   background-color: white;
   border-radius: var(--mimics-border-radius-md);
@@ -241,16 +503,4 @@
 
 .primitive-manager button:active {
   transform: translateY(1px);
-}
-
-/* Анимации */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }

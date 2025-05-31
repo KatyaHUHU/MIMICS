@@ -1,5 +1,5 @@
 import React from "react";
-import api from './api';
+import { startGeneration } from './api';
 
 // Компонент для запуска генерации данных
 export default function StartGenerationButton({ scenario, onSuccess }) {
@@ -12,8 +12,8 @@ export default function StartGenerationButton({ scenario, onSuccess }) {
         packets: 2     // Пакетов в секунду
       };
       
-      // Вызываем API для старта генерации
-      const response = await api.post('/start', startRequest);
+      // Используем функцию startGeneration вместо прямого вызова api.post
+      const response = await startGeneration(startRequest);
       
       console.log("Генерация запущена:", response.data);
       
