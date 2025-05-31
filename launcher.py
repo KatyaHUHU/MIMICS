@@ -175,8 +175,8 @@ class MimicsLauncher:
             subprocess.run(['docker-compose', 'up', '-d'], cwd=self.root_dir, check=True)
             
             # Ожидание запуска БД
-            print(f"{Colors.YELLOW}⏳ Ожидание готовности базы данных (10 сек)...{Colors.END}")
-            time.sleep(10)
+            print(f"{Colors.YELLOW}⏳ Ожидание готовности базы данных (15 сек)...{Colors.END}")
+            time.sleep(15)
             
             # Инициализация БД
             print(f"{Colors.CYAN}🔧 Инициализация таблиц базы данных...{Colors.END}")
@@ -203,6 +203,44 @@ class MimicsLauncher:
             print(f"{Colors.YELLOW}💡 Попробуйте запустить с правами администратора{Colors.END}")
             return False
     
+    def check_database_health(self):
+        """Проверка готовности базы данных"""
+        venv_path = self.root_dir / 'venv'
+        python_path = venv_path / 'Scripts' / 'python.exe'
+        
+        # Проверяем подключение к БД
+        check_script = """
+import sys
+sys.path.append('.')
+try:
+    from db.config import engine
+    engine.connect().close()
+    print("Database connection OK")
+    sys.exit(0)
+except Exception as e:
+    print(f"Database connection failed: {e}")
+    sys.exit(1)
+"""
+        
+        try:
+            result = subprocess.run(
+                [str(python_path), '-c', check_script],
+                cwd=self.root_dir,
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            
+            if result.returncode == 0:
+                print(f"{Colors.GREEN}✅ База данных доступна{Colors.END}")
+                return True
+            else:
+                print(f"{Colors.RED}❌ База данных недоступна: {result.stdout}{Colors.END}")
+                return False
+        except Exception as e:
+            print(f"{Colors.RED}❌ Ошибка проверки БД: {e}{Colors.END}")
+            return False
+    
     def start_application(self):
         """Запуск приложения"""
         print(f"\n{Colors.BLUE}🚀 Запуск MIMICS...{Colors.END}")
@@ -212,25 +250,56 @@ class MimicsLauncher:
         
         try:
             # Запуск базы данных
-            print(f"{Colors.CYAN}🗄️ Проверка базы данных...{Colors.END}")
+            print(f"{Colors.CYAN}🗄️ Запуск базы данных PostgreSQL...{Colors.END}")
             subprocess.run(['docker-compose', 'up', '-d'], cwd=self.root_dir)
-            time.sleep(3)
+            
+            # Увеличенное ожидание для БД
+            print(f"{Colors.YELLOW}⏳ Ожидание готовности базы данных...{Colors.END}")
+            for i in range(30):  # До 30 секунд ожидания
+                time.sleep(1)
+                if self.check_database_health():
+                    break
+                if i % 5 == 0:
+                    print(f"{Colors.YELLOW}   Ожидание... ({i} сек){Colors.END}")
             
             # Пути для виртуального окружения Windows
             venv_path = self.root_dir / 'venv'
             python_path = venv_path / 'Scripts' / 'python.exe'
             
-            # Запуск backend БЕЗ отдельной консоли
+            # Всегда инициализируем БД при запуске
+            print(f"{Colors.CYAN}🔧 Проверка и инициализация таблиц базы данных...{Colors.END}")
+            result = subprocess.run([str(python_path), 'db_init.py'], 
+                                  cwd=self.root_dir, 
+                                  capture_output=True,
+                                  text=True)
+            if result.returncode != 0:
+                print(f"{Colors.RED}❌ Ошибка инициализации БД: {result.stderr}{Colors.END}")
+                return False
+            
+            # Запуск backend с ВИДИМЫМИ логами
             print(f"{Colors.CYAN}🔧 Запуск Backend API (порт 8000)...{Colors.END}")
+            print(f"{Colors.YELLOW}📝 Логи backend будут отображаться ниже:{Colors.END}")
+            
+            # Создаем новую консоль для backend с видимыми логами
             self.backend_process = subprocess.Popen([
                 str(python_path), '-m', 'uvicorn', 'api.main:app', 
-                '--reload', '--host', '0.0.0.0', '--port', '8000'
-            ], cwd=self.root_dir, 
-               stdout=subprocess.DEVNULL, 
-               stderr=subprocess.DEVNULL)
+                '--reload', '--host', '0.0.0.0', '--port', '8000',
+                '--log-level', 'info'
+            ], cwd=self.root_dir,
+               creationflags=subprocess.CREATE_NEW_CONSOLE)
             
             # Пауза для запуска API
+            print(f"{Colors.YELLOW}⏳ Ожидание запуска Backend API...{Colors.END}")
             time.sleep(5)
+            
+            # Проверка доступности API
+            try:
+                import urllib.request
+                response = urllib.request.urlopen('http://localhost:8000/')
+                if response.getcode() == 200:
+                    print(f"{Colors.GREEN}✅ Backend API запущен и доступен{Colors.END}")
+            except Exception as e:
+                print(f"{Colors.YELLOW}⚠️ Backend API может быть недоступен: {e}{Colors.END}")
             
             # Запуск frontend БЕЗ отдельной консоли
             print(f"{Colors.CYAN}🎨 Запуск Frontend React (порт 3000)...{Colors.END}")
@@ -262,6 +331,8 @@ class MimicsLauncher:
    Backend API:  http://localhost:8000
    API Docs:     http://localhost:8000/docs
 
+{Colors.YELLOW}📝 Backend логи отображаются в отдельном окне консоли{Colors.END}
+
 {Colors.BLUE}🔗 Открытие приложения в браузере...{Colors.END}
 """
             print(success_msg)
@@ -273,6 +344,8 @@ class MimicsLauncher:
             
         except Exception as e:
             print(f"{Colors.RED}❌ Ошибка запуска: {e}{Colors.END}")
+            import traceback
+            traceback.print_exc()
             return False
     
     def wait_for_exit(self):
@@ -433,7 +506,7 @@ class MimicsLauncher:
 
 {Colors.YELLOW}Примечания:{Colors.END}
   - Приложение работает в фоновом режиме
-  - Никаких отдельных CMD окон
+  - Backend логи отображаются в отдельном окне
   - Автоматическая очистка портов при запуске
 """
         print(help_text)

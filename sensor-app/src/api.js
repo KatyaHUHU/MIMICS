@@ -1,8 +1,10 @@
 // sensor-app/src/api.js
 import axios from 'axios';
 
+// Используем относительный путь вместо абсолютного
+// Это позволит proxy в package.json работать правильно
 const api = axios.create({
-  baseURL: 'http://localhost:8000',
+  baseURL: '/api',  // Изменено с 'http://localhost:8000' на '/api'
 });
 
 // Методы для работы с примитивами (старые эндпоинты)
@@ -10,21 +12,21 @@ export const getPrimitives = () => api.get('/primitives');
 export const addPrimitive = (primitive) => api.post('/primitives', primitive);
 export const removePrimitive = (index) => api.delete(`/primitives/${index}`);
 
-// Методы для работы с датчиками (новые эндпоинты)
-export const getSensors = () => api.get('/api/sensors');
-export const getSensor = (id) => api.get(`/api/sensors/${id}`);
-export const createSensor = (sensor) => api.post('/api/sensors', sensor);
-export const updateSensor = (id, sensor) => api.put(`/api/sensors/${id}`, sensor);
-export const deleteSensor = (id) => api.delete(`/api/sensors/${id}`);
+// Методы для работы с датчиками - добавляем trailing slash
+export const getSensors = () => api.get('/sensors/');  // Добавлен trailing slash
+export const getSensor = (id) => api.get(`/sensors/${id}/`);
+export const createSensor = (sensor) => api.post('/sensors/', sensor);
+export const updateSensor = (id, sensor) => api.put(`/sensors/${id}/`, sensor);
+export const deleteSensor = (id) => api.delete(`/sensors/${id}/`);
 
-// Методы для работы с примитивами датчиков (новые эндпоинты)
-export const getSensorPrimitives = (sensorId) => api.get(`/api/sensors/${sensorId}/primitives`);
-export const addSensorPrimitive = (sensorId, primitive) => api.post(`/api/sensors/${sensorId}/primitives`, primitive);
-export const deleteSensorPrimitive = (primitiveId) => api.delete(`/api/sensors/primitives/${primitiveId}`);
+// Методы для работы с примитивами датчиков
+export const getSensorPrimitives = (sensorId) => api.get(`/sensors/${sensorId}/primitives/`);
+export const addSensorPrimitive = (sensorId, primitive) => api.post(`/sensors/${sensorId}/primitives/`, primitive);
+export const deleteSensorPrimitive = (primitiveId) => api.delete(`/sensors/primitives/${primitiveId}/`);
 
-// Методы для генерации
-export const startGeneration = (request) => api.post('/start', request);
-export const stopGeneration = () => api.post('/stop');
-export const getStatus = () => api.get('/status');
+// Методы для генерации - эти остаются без /api префикса
+export const startGeneration = (request) => axios.post('/start', request);
+export const stopGeneration = () => axios.post('/stop');
+export const getStatus = () => axios.get('/status');
 
 export default api;

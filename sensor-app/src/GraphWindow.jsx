@@ -15,7 +15,10 @@ const GraphWindow = ({ onClose }) => {
     // Функция подключения к WebSocket
     const connectWebSocket = () => {
       console.log("Attempting to connect to WebSocket...");
-      const ws = new WebSocket('ws://localhost:8000/ws');
+      // Используем относительный путь для WebSocket
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsHost = window.location.host.replace('3000', '8000'); // Заменяем порт React на порт FastAPI
+      const ws = new WebSocket(`${wsProtocol}//${wsHost}/ws`);
       wsRef.current = ws;
       
       ws.onopen = () => {
@@ -77,7 +80,8 @@ const GraphWindow = ({ onClose }) => {
     const fetchDataFallback = async () => {
       try {
         console.log("Fetching data from HTTP fallback...");
-        const response = await fetch('http://localhost:8000/data');
+        // Используем относительный путь
+        const response = await fetch('/data');
         if (response.ok) {
           const fetchedData = await response.json();
           console.log(`HTTP data received: ${fetchedData.length} points`);
